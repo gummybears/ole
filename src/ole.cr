@@ -1,5 +1,5 @@
 require "./header.cr"
-
+require "./helper.cr"
 #
 # see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/28488197-8193-49d7-84d8-dfd692418ccd
 #
@@ -36,6 +36,10 @@ module Ole
       @data   = Bytes.new(@size)
       @io.read_fully(@data)
       @header = Header.new(@data)
+    end
+
+    def get_header() : Header
+      @header
     end
   end
 end

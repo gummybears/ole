@@ -5,140 +5,227 @@ module Ole
   # A class which wraps the ole header
   # see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/05060311-bfce-4b12-874d-71fd4ce63aea?redirectedfrom=MSDN
   #
+
+  #
+  # Note:
+  # For version 4 compound files, the header size (512 bytes) is less than the sector size (4,096 bytes),
+  # so the remaining part of the header (3,584 bytes) MUST be filled with all zeroes
+  #
+
   class Header
-                                                                      #   size    # offset (decimal)
-    property magic                : Bytes = Bytes.new(8)  # Int32 = 0 #  8 bytes         0
-    property clsid                : Bytes = Bytes.new(16) # Int32 = 0 # 16 bytes         8
-    property minor_version        : Bytes = Bytes.new(2)  # Int32 = 0 #  2 bytes        24
-    property major_version        : Bytes = Bytes.new(2)  # Int32 = 0 #  2 bytes        26
-    property byte_order           : Bytes = Bytes.new(2)  # Int32 = 0 #  2 bytes        28
-    property sector_shift         : Bytes = Bytes.new(2)  # Int32 = 0 #  2 bytes        30
-    property mini_sector_shift    : Bytes = Bytes.new(2)  # Int32 = 0 #  2 bytes        32
-    property reserved             : Bytes = Bytes.new(6)  # Int32 = 0 #  6 bytes        38
-    property nr_dir_sectors       : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        42
-    property nr_fat_sectors       : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        46
-    property first_dir_sector_loc : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        50
-    property trans_sig_number     : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        54
-    property mini_stream_cutoff   : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        58
-    property first_mini_fat_loc   : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        62
-    property nr_mini_fat_sectors  : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        66
-    property first_difat_loc      : Bytes = Bytes.new(4)  # Int32 = 0 #  4 bytes        70
-    property difat                : Array(Int32) = [] of Int32 # first 109 FAT sector locations
+                                                                 #   size     # start offset (decimal)
+    # property magic                : Bytes = Bytes.new(8)       #   8 bytes     0
+    # property clsid                : Bytes = Bytes.new(16)      #  16 bytes     8
+    # property minor_version        : Bytes = Bytes.new(2)       #   2 bytes    24
+    # property major_version        : Bytes = Bytes.new(2)       #   2 bytes    26
+    # property byte_order           : Bytes = Bytes.new(2)       #   2 bytes    28
+    # property sector_shift         : Bytes = Bytes.new(2)       #   2 bytes    30
+    # property mini_sector_shift    : Bytes = Bytes.new(2)       #   2 bytes    32
+    # property reserved             : Bytes = Bytes.new(6)       #   6 bytes    34
+    # property nr_dir_sectors       : Bytes = Bytes.new(4)       #   4 bytes    40
+    # property nr_fat_sectors       : Bytes = Bytes.new(4)       #   4 bytes    44
+    # property first_dir_sector_loc : Bytes = Bytes.new(4)       #   4 bytes    48
+    # property trans_sig_number     : Bytes = Bytes.new(4)       #   4 bytes    52
+    # property mini_stream_cutoff   : Bytes = Bytes.new(4)       #   4 bytes    56
+    # property first_mini_fat_loc   : Bytes = Bytes.new(4)       #   4 bytes    60
+    # property nr_mini_fat_sectors  : Bytes = Bytes.new(4)       #   4 bytes    64
+    # property first_difat_loc      : Bytes = Bytes.new(4)       #   4 bytes    68
+    # property nr_dfat_sectors      : Bytes = Bytes.new(4)       #   4 bytes    72
+    # property difat                : Bytes = Bytes.new(436)     # 436 bytes    from 76, first 109 = (436/4) FAT sector locations
 
     property data : Bytes
 
-    #
-    # Note:
-    # For version 4 compound files, the header size (512 bytes) is less than the sector size (4,096 bytes),
-    # so the remaining part of the header (3,584 bytes) MUST be filled with all zeroes
-    #
     def initialize(data : Bytes)
       @data = data
     end
 
-    # property dirent_start  : Int32 = 0
-    # property num_bat       : Int32 = 0
-    # property num_sbat      : Int32 = 0
-    # property num_mbat      : Int32 = 0
-
-    #  8 bytes starting at pos 0
-    def magic()
-      startpos = 0
-      endpos   = startpos + 8 - 1
-      @data[startpos..endpos]
+    private def get_data(spos,epos,len)
+      #
+      # Note: epos is not used
+      # however I decided to leave it as a parameter
+      # more esthetic. Also could be used as
+      # internal check
+      #
+      endpos = spos + len - 1
+      @data[spos..endpos]
     end
 
-    # 16 bytes at pos 8
+    def magic()
+      get_data(0,8,8)
+    end
+
     def clsid()
-      startpos = 8
-      endpos   = startpos + 16 - 1
-      @data[startpos..endpos]
+      get_data(8,24,16)
     end
 
     def minor_version
+      get_data(24,26,2)
     end
 
     def major_version
+      get_data(26,28,2)
     end
 
     def byte_order
+      get_data(28,30,2)
     end
 
     def sector_shift
+      get_data(30,32,2)
     end
 
-      # @header.minor_version        = @data[24..24+2-1]  #  2 bytes        24
-      # @header.major_version        = @data[26..26+2-1]  #  2 bytes        26
-      # @header.byte_order           = @data[28..28+2-1]  #  2 bytes        28
-      # @header.sector_shift         = @data[30..30+2-1]  #  2 bytes        30
-      # @header.mini_sector_shift    = @data[32..32+2-1]  #  2 bytes        32
-      # @header.reserved             = @data[34..34+6-1]  #  6 bytes        38
-      # @header.nr_dir_sectors       = @data[30         #  4 bytes        42
-      # @header.nr_fat_sectors       = @data[30         #  4 bytes        46
-      # @header.first_dir_sector_loc = @data[30         #  4 bytes        50
-      # @header.trans_sig_number     = @data[30         #  4 bytes        54
-      # @header.mini_stream_cutoff   = @data[30         #  4 bytes        58
-      # @header.first_mini_fat_loc   = @data[30         #  4 bytes        62
-      # @header.nr_mini_fat_sectors  = @data[30         #  4 bytes        66
-      # @header.first_difat_loc      = @data[30         #  4 bytes        70
+    def mini_sector_shift
+      get_data(32,34,2)
+    end
 
+    def reserved
+      get_data(34,40,6)
+    end
 
+    def nr_dir_sectors
+      get_data(40,44,4)
+    end
+
+    def nr_fat_sectors
+      get_data(44,48,4)
+    end
+
+    def first_dir_sector_loc
+      get_data(48,52,4)
+    end
+
+    def trans_sig_number
+      get_data(52,56,4)
+    end
+
+    def mini_stream_cutoff
+      get_data(56,60,4)
+    end
+
+    def first_mini_fat_loc
+      get_data(60,64,4)
+    end
+
+    def nr_mini_fat_sectors
+      get_data(64,68,4)
+    end
+
+    def first_difat_loc
+      get_data(68,72,4)
+    end
+
+    def nr_dfat_sectors
+      get_data(72,76,4)
+    end
+
+    def dfat()
+      get_data(76,76+436,436)
+    end
+
+    def size()
+      x = 8 + 16 + 5 * 2 + 6 + 9 * 4 + 109 * 4
+    end
+
+    def version
+      r = 0
+      x = major_version()
+      if x[0] == 0x03 && x[1] == 0x0
+        return 3
+      elsif x[0] == 0x04 && x[1] == 0x0
+        return 4
+      end
+
+      r
+    end
+
+    def sector_size
+      r = 0
+      case version
+        when 3
+          r = 512
+        when 4
+          r = 4096
+        else
+          r = 0
+      end
+
+      r
+    end
+
+    def validate_magic
+      to_hex(magic) == "0xd0cf11e0a1b11ae1"
+    end
+
+    def validate_clsid
+      to_hex(clsid) == "0x0000000000000000"
+    end
+
+    def validate_byteorder
+      to_hex(byte_order) == "0xfeff"
+    end
+
+    # Sector Shift (2 bytes):
+    # This field MUST be set to 0x0009, or 0x000c, depending on the Major Version field.
+    # This field specifies the sector size of the compound file as a power of 2.
+    #
+    # If Major Version is 3, the Sector Shift MUST be 0x0009, specifying a sector size of 512 bytes.
+    # If Major Version is 4, the Sector Shift MUST be 0x000C, specifying a sector size of 4096 bytes.
+    #
+    def validate_sectorshift
+      x = sector_shift
+
+      case version
+        when 3
+          return to_hex(x) == "0x90"
+
+        when 4
+          return to_hex(x) == "0xc0"
+
+        else
+          return false
+      end
+
+      false
+    end
+
+    def validate_minor_sector_shift
+       to_hex(mini_sector_shift) == "0x60"
+    end
+
+    def validate_reserved
+      x = reserved
+      x.each do |i|
+        if x[i] != 0
+          return false
+        end
+
+      end
+
+      return true
+    end
+
+    def validate_nr_dir_sectors
+      s = to_hex(nr_dfat_sectors)
+      case version
+        when 3
+          return s == "0x0000"
+        else
+          return true
+
+      end
+
+      return true
+    end
+
+    def validate : Bool
+      validate_magic &&
+      validate_clsid &&
+      validate_byteorder &&
+      validate_sectorshift &&
+      validate_minor_sector_shift &&
+      validate_nr_dir_sectors &&
+      validate_reserved
+    end
 
   end
 end
-
-#    class Header < Struct.new(
-#        :magic, :clsid, :minor_ver, :major_ver, :byte_order, :b_shift, :s_shift,
-#        :reserved, :csectdir, :num_bat, :dirent_start, :transacting_signature, :threshold,
-#        :sbat_start, :num_sbat, :mbat_start, :num_mbat
-#      )
-#      PACK = 'a8 a16 v2 a2 v2 a6 V3 a4 V5'
-#      SIZE = 0x4c
-#      # i have seen it pointed out that the first 4 bytes of hex,
-#      # 0xd0cf11e0, is supposed to spell out docfile. hmmm :)
-#      MAGIC = "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"  # expected value of Header#magic
-#      # what you get if creating new header from scratch.
-#      # AllocationTable::EOC isn't available yet. meh.
-#      EOC = 0xfffffffe
-#      DEFAULT = [
-#        MAGIC, 0.chr * 16, 59, 3, "\xfe\xff", 9, 6,
-#        0.chr * 6, 0, 1, EOC, 0.chr * 4,
-#        4096, EOC, 0, EOC, 0
-#      ]
-#
-#      def initialize values=DEFAULT
-#        values = values.unpack(PACK) if String === values
-#        super(*values)
-#        validate!
-#      end
-#
-#      def to_s
-#        to_a.pack PACK
-#      end
-#
-#      def validate!
-#        raise FormatError, "OLE2 signature is invalid" unless magic == MAGIC
-#        if num_bat == 0 or # is that valid for a completely empty file?
-#           # not sure about this one. basically to do max possible bat given size of mbat
-#           num_bat > 109 && num_bat > 109 + num_mbat * (1 << b_shift - 2) or
-#           # shouldn't need to use the mbat as there is enough space in the header block
-#           num_bat < 109 && num_mbat != 0 or
-#           # given the size of the header is 76, if b_shift <= 6, blocks address the header.
-#           s_shift > b_shift or b_shift <= 6 or b_shift >= 31 or
-#           # we only handle little endian
-#           byte_order != "\xfe\xff"
-#          raise FormatError, "not valid OLE2 structured storage file"
-#        end
-#        # relaxed this, due to test-msg/qwerty_[1-3]*.msg they all had
-#        # 3 for this value.
-#        # transacting_signature != "\x00" * 4 or
-#        if threshold != 4096 or
-#           num_mbat == 0 && ![AllocationTable::EOC, AllocationTable::AVAIL].include?(mbat_start) or
-#           reserved != "\x00" * 6
-#          Log.warn "may not be a valid OLE2 structured storage file"
-#        end
-#        true
-#      end
-#    end
-#
-#
