@@ -1,3 +1,10 @@
+#
+# header.cr
+#
+# author : W.F.F. Neimeijer
+# copyright 2007-2023, ICUBIC
+#
+#
 require "./helper.cr"
 
 module Ole
@@ -32,8 +39,9 @@ module Ole
     # property first_difat_loc      : Bytes = Bytes.new(4)       #   4 bytes    68
     # property nr_dfat_sectors      : Bytes = Bytes.new(4)       #   4 bytes    72
     # property difat                : Bytes = Bytes.new(436)     # 436 bytes    from 76, first 109 = (436/4) FAT sector locations
-
-    property data : Bytes
+    property errors : Array(String) = [] of String
+    property error  : String = ""
+    property data   : Bytes
 
     def initialize(data : Bytes)
       @data = data
@@ -48,6 +56,27 @@ module Ole
       #
       endpos = spos + len - 1
       @data[spos..endpos]
+    end
+
+    def dump()
+      puts "magic                #{to_hex(magic())}"
+      puts "clsid                #{to_hex(clsid())}"
+      puts "minor_version        #{to_hex(minor_version())}"
+      puts "major_version        #{to_hex(major_version())}"
+      puts "byte_order           #{to_hex(byte_order())}"
+      puts "sector_shift         #{to_hex(sector_shift())}"
+      puts "mini_sector_shift    #{to_hex(mini_sector_shift())}"
+      puts "reserved             #{to_hex(reserved())}"
+      puts "first_dir_sector_loc #{to_hex(first_dir_sector_loc())}"
+      puts "trans_sig_number     #{to_hex(trans_sig_number())}"
+      puts "mini_stream_cutoff   #{to_hex(mini_stream_cutoff())}"
+      puts "first_mini_fat_loc   #{to_hex(first_mini_fat_loc())}"
+      puts "first_difat_loc      #{to_hex(first_difat_loc())}"
+
+      puts "nr_dir_sectors       #{::Ole.little_endian(nr_dir_sectors())}"
+      puts "nr_fat_sectors       #{::Ole.little_endian(nr_fat_sectors())}"
+      puts "nr_mini_fat_sectors  #{::Ole.little_endian(nr_mini_fat_sectors())}"
+      puts "nr_dfat_sectors      #{::Ole.little_endian(nr_dfat_sectors())}"
     end
 
     def magic()
@@ -146,6 +175,7 @@ module Ole
         when 4
           r = 4096
         else
+          @errors << "invalid Ole sector size"
           r = 0
       end
 
@@ -153,17 +183,30 @@ module Ole
     end
 
     def validate_magic
-      to_hex(magic) == "0xd0cf11e0a1b11ae1"
+      r = (to_hex(magic) == "0xd0cf11e0a1b11ae1")
+      if r == false
+        @errors << "invalid Ole header signature"
+      end
+      r
     end
 
     def validate_clsid
-      to_hex(clsid) == "0x0000000000000000"
+      r = (to_hex(clsid) == "0x0000000000000000")
+      if r == false
+        @errors << "invalid Ole class id"
+      end
+      r
     end
 
     def validate_byteorder
-      to_hex(byte_order) == "0xfeff"
+      r = (to_hex(byte_order) == "0xfeff")
+      if r == false
+        @errors << "invalid Ole byte order"
+      end
+      r
     end
 
+    #
     # Sector Shift (2 bytes):
     # This field MUST be set to 0x0009, or 0x000c, depending on the Major Version field.
     # This field specifies the sector size of the compound file as a power of 2.
@@ -218,13 +261,19 @@ module Ole
     end
 
     def validate : Bool
-      validate_magic &&
-      validate_clsid &&
-      validate_byteorder &&
-      validate_sectorshift &&
-      validate_minor_sector_shift &&
-      validate_nr_dir_sectors &&
-      validate_reserved
+      x = validate_magic              &&
+          validate_clsid              &&
+          validate_byteorder          &&
+          validate_sectorshift        &&
+          validate_minor_sector_shift &&
+          validate_nr_dir_sectors     &&
+          validate_reserved
+
+      if x == false
+        @error = "not a valid Ole structure storage file"
+      end
+
+      return x
     end
 
   end

@@ -1,20 +1,37 @@
-module Ole
-  # old code def to_hex(x)
-  # old code   s = "0x"
-  # old code   x.each do |e|
-  # old code     s = s + sprintf("%0.2x",e)
-  # old code   end
-  # old code
-  # old code   return s
-  # old code end
+#
+# helper.cr
+#
+# author : W.F.F. Neimeijer
+# copyright 2007-2023, ICUBIC
+#
 
-  def to_hex(x)
+module Ole
+
+  def self.to_hex(bytes : Bytes, leading_zero : Bool = false)
     s = "0x"
-    x.each do |e|
-      s = s + sprintf("%0x",e)
+    bytes.each do |e|
+      if leading_zero
+        s = s + sprintf("%0.2x",e)
+      else
+        s = s + sprintf("%0x",e)
+      end
     end
 
     return s
+  end
+
+  def self.little_endian(bytes : Bytes) : (Int16|Int32)
+    r = 0
+    case bytes.size
+      when 2
+        r = IO::ByteFormat::LittleEndian.decode(Int16, bytes)
+      when 4
+        r = IO::ByteFormat::LittleEndian.decode(Int32, bytes)
+    else
+      return 0
+    end
+
+    return r
   end
 
 end

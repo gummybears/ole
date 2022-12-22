@@ -1,17 +1,19 @@
+#
+# t_header_spec.cr
+#
+# author : W.F.F. Neimeijer
+# copyright 2007-2023, ICUBIC
+#
 require "./spec_helper"
 require "../src/ole.cr"
 
-def ole_storage(filename : String, mode : String)
-
-end
-
-describe "Ole::Storage|Header" do
+describe "Ole::File|Header" do
 
   #
   # testing just the raw data, no byte order assumed (little or big endian)
   #
   it "get_header" do
-    ole = Ole::Storage.new("./spec/test_word_6.doc","rb")
+    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
     ole.size.should eq 61440
     ole.status.should eq 0
 
@@ -42,27 +44,28 @@ describe "Ole::Storage|Header" do
   end
 
   it "size" do
-    ole = Ole::Storage.new("./spec/test_word_6.doc","rb")
+    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
     header = ole.get_header()
     header.size.should eq 512
   end
 
   it "version" do
-    ole = Ole::Storage.new("./spec/test_word_6.doc","rb")
+    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
     header = ole.get_header()
     header.version.should eq 3
   end
 
   it "sector_size" do
-    ole = Ole::Storage.new("./spec/test_word_6.doc","rb")
+    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
     header = ole.get_header()
     header.sector_size.should eq 512
   end
 
   it "validate" do
-    ole = Ole::Storage.new("./spec/test_word_6.doc","rb")
+    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
     header = ole.get_header()
     header.validate.should eq true
+    header.errors.size.should eq 0
   end
 
 end
