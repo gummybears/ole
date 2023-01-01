@@ -38,6 +38,12 @@ module Ole
     Root      = 5          # element is a root storage
   end
 
+  enum ByteOrder
+    None
+    LittleEndian
+    BigEndian
+  end
+
   # old code STGTY_EMPTY     = 0          # empty directory entry
   # old code STGTY_STORAGE   = 1          # element is a storage object
   # old code STGTY_STREAM    = 2          # element is a stream object
@@ -108,6 +114,4 @@ module Ole
 
   # size of a directory entry: 128 bytes
   DIRENTRY_SIZE = 128
-
-
 end

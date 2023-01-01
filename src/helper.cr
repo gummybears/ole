@@ -6,13 +6,36 @@
 #
 module Ole
 
-  enum ByteOrder
-    None
-    LittleEndian
-    BigEndian
+  def self.to_raw(bytes : Bytes, byte_order : ByteOrder = ByteOrder::None) : String
+    s = ""
+
+    case byte_order
+      when ByteOrder::None
+
+        bytes.each do |e|
+          s = s + sprintf("%0x",e)
+        end
+
+      when ByteOrder::LittleEndian
+
+        #
+        # be careful using reverse!
+        # clone bytes and than reverse!
+        #
+        x = bytes.clone
+        x.reverse!
+        x.each do |e|
+          s = s + sprintf("%0x",e)
+        end
+
+      else
+
+    end
+
+    return s
   end
 
-  def self.to_hex(bytes : Bytes, byte_order : ByteOrder = ByteOrder::None, leading_zero : Bool = false)
+  def self.to_hex(bytes : Bytes, byte_order : ByteOrder = ByteOrder::None, prefix : String = "", leading_zero : Bool = false)
     s = "0x"
 
     case byte_order
@@ -62,5 +85,4 @@ module Ole
 
     return r
   end
-
 end

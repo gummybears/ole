@@ -44,8 +44,60 @@ module Ole
     property error  : String = ""
     property data   : Bytes
 
+    property magic                : String         = ""
+    property clsid                : String         = ""
+    property minor_version        : Int32          = 0
+    property major_version        : Int32          = 0
+    property byte_order           : Int32          = 0 # Ole::ByteOrder = Ole::ByteOrder::LittleEndian
+    property sector_shift         : Int32          = 0
+    property mini_sector_shift    : Int32          = 0
+    property reserved             : String         = ""
+    property nr_dir_sectors       : Int32          = 0
+    property nr_fat_sectors       : Int32          = 0
+    property first_dir_sector_loc : Int32          = 0
+    property trans_sig_number     : Int32          = 0
+    property mini_stream_cutoff   : Int32          = 0
+    property first_mini_fat_loc   : Int32          = 0
+    property nr_mini_fat_sectors  : Int32          = 0
+    property first_difat_loc      : Int32          = 0
+    property nr_dfat_sectors      : Int32          = 0
+    property difat                : Array(Int32)   = [] of Int32
+
     def initialize(data : Bytes)
-      @data = data
+      @data    = data
+
+      #
+      # fill in difat array
+      #
+      spos     = 76
+      nr_bytes = 4
+
+      (0..108).each do |i|
+        epos   = spos + nr_bytes - 1
+        @difat << ::Ole.little_endian(data[spos..epos]).to_i32
+
+        spos = epos + 1
+      end
+
+      lv_byte_order         =  Ole::ByteOrder::LittleEndian
+      @magic                = ::Ole.to_raw(_magic(),lv_byte_order)
+      @clsid                = ::Ole.to_raw(_clsid(),lv_byte_order)
+      @minor_version        = ::Ole.little_endian(_minor_version()).to_i32
+      @major_version        = ::Ole.little_endian(_major_version()).to_i32
+      @byte_order           = ::Ole.little_endian(_byte_order()).to_i32
+      @sector_shift         = ::Ole.little_endian(_sector_shift()).to_i32
+      @mini_sector_shift    = ::Ole.little_endian(_mini_sector_shift()).to_i32
+      @reserved             = ::Ole.to_raw(_reserved(),lv_byte_order)
+      @nr_dir_sectors       = ::Ole.little_endian(_nr_dir_sectors()).to_i32
+      @nr_fat_sectors       = ::Ole.little_endian(_nr_fat_sectors()).to_i32
+      @first_dir_sector_loc = ::Ole.little_endian(_first_dir_sector_loc()).to_i32
+      @trans_sig_number     = ::Ole.little_endian(_trans_sig_number()).to_i32
+      @mini_stream_cutoff   = ::Ole.little_endian(_mini_stream_cutoff()).to_i32
+      @first_mini_fat_loc   = ::Ole.little_endian(_first_mini_fat_loc()).to_i32
+      @nr_mini_fat_sectors  = ::Ole.little_endian(_nr_mini_fat_sectors()).to_i32
+      @first_difat_loc      = ::Ole.little_endian(_first_difat_loc()).to_i32
+      @nr_dfat_sectors      = ::Ole.little_endian(_nr_dfat_sectors()).to_i32
+
     end
 
     private def get_data(spos,epos,len)
@@ -59,101 +111,101 @@ module Ole
       @data[spos..endpos]
     end
 
-    def dump()
+    # def dump()
+    #
+    #   byte_order = Ole::ByteOrder::LittleEndian
+    #
+    #   puts "magic                #{::Ole.to_hex(magic(),byte_order)}"
+    #   puts "clsid                #{::Ole.to_hex(clsid())}"
+    #   puts "minor_version        #{::Ole.to_hex(minor_version(),byte_order,true)}"
+    #   puts "major_version        #{::Ole.to_hex(major_version(),byte_order,true)}"
+    #   puts "byte_order           #{::Ole.to_hex(byte_order(),byte_order,true)}"
+    #   puts "sector_shift         #{::Ole.to_hex(sector_shift(),byte_order,true)}"
+    #   puts "mini_sector_shift    #{::Ole.to_hex(mini_sector_shift(),byte_order,true)}"
+    #   puts "reserved             #{::Ole.to_hex(reserved(),byte_order,true)}"
+    #   puts "first_dir_sector_loc #{::Ole.to_hex(first_dir_sector_loc(),byte_order,true)}"
+    #   puts "trans_sig_number     #{::Ole.to_hex(trans_sig_number(),byte_order,true)}"
+    #   puts "mini_stream_cutoff   #{::Ole.to_hex(mini_stream_cutoff(),byte_order,true)}"
+    #   puts "first_mini_fat_loc   #{::Ole.to_hex(first_mini_fat_loc(),byte_order,true)}"
+    #   puts "first_difat_loc      #{::Ole.to_hex(first_difat_loc(),byte_order,true)}"
+    #
+    #   puts "nr_dir_sectors       #{::Ole.little_endian(nr_dir_sectors())}"
+    #   puts "nr_fat_sectors       #{::Ole.little_endian(nr_fat_sectors())}"
+    #   puts "nr_mini_fat_sectors  #{::Ole.little_endian(nr_mini_fat_sectors())}"
+    #   puts "nr_dfat_sectors      #{::Ole.little_endian(nr_dfat_sectors())}"
+    # end
 
-      byte_order = Ole::ByteOrder::LittleEndian
-
-      puts "magic                #{::Ole.to_hex(magic(),byte_order)}"
-      puts "clsid                #{::Ole.to_hex(clsid())}"
-      puts "minor_version        #{::Ole.to_hex(minor_version(),byte_order,true)}"
-      puts "major_version        #{::Ole.to_hex(major_version(),byte_order,true)}"
-      puts "byte_order           #{::Ole.to_hex(byte_order(),byte_order,true)}"
-      puts "sector_shift         #{::Ole.to_hex(sector_shift(),byte_order,true)}"
-      puts "mini_sector_shift    #{::Ole.to_hex(mini_sector_shift(),byte_order,true)}"
-      puts "reserved             #{::Ole.to_hex(reserved(),byte_order,true)}"
-      puts "first_dir_sector_loc #{::Ole.to_hex(first_dir_sector_loc(),byte_order,true)}"
-      puts "trans_sig_number     #{::Ole.to_hex(trans_sig_number(),byte_order,true)}"
-      puts "mini_stream_cutoff   #{::Ole.to_hex(mini_stream_cutoff(),byte_order,true)}"
-      puts "first_mini_fat_loc   #{::Ole.to_hex(first_mini_fat_loc(),byte_order,true)}"
-      puts "first_difat_loc      #{::Ole.to_hex(first_difat_loc(),byte_order,true)}"
-
-      puts "nr_dir_sectors       #{::Ole.little_endian(nr_dir_sectors())}"
-      puts "nr_fat_sectors       #{::Ole.little_endian(nr_fat_sectors())}"
-      puts "nr_mini_fat_sectors  #{::Ole.little_endian(nr_mini_fat_sectors())}"
-      puts "nr_dfat_sectors      #{::Ole.little_endian(nr_dfat_sectors())}"
-    end
-
-    def magic()
+    private def _magic()
       get_data(0,8,8)
     end
 
-    def clsid()
+    private def _clsid()
       get_data(8,24,16)
     end
 
-    def minor_version
+    private def _minor_version
       get_data(24,26,2)
     end
 
-    def major_version
+    private def _major_version
       get_data(26,28,2)
     end
 
-    def byte_order
+    private def _byte_order
       get_data(28,30,2)
     end
 
-    def sector_shift
+    private def _sector_shift
       get_data(30,32,2)
     end
 
-    def mini_sector_shift
+    private def _mini_sector_shift
       get_data(32,34,2)
     end
 
-    def reserved
+    private def _reserved
       get_data(34,40,6)
     end
 
-    def nr_dir_sectors
+    private def _nr_dir_sectors
       get_data(40,44,4)
     end
 
-    def nr_fat_sectors
+    private def _nr_fat_sectors
       get_data(44,48,4)
     end
 
-    def first_dir_sector_loc
+    private def _first_dir_sector_loc
       get_data(48,52,4)
     end
 
-    def trans_sig_number
+    private def _trans_sig_number
       get_data(52,56,4)
     end
 
-    def mini_stream_cutoff
+    private def _mini_stream_cutoff
       get_data(56,60,4)
     end
 
-    def first_mini_fat_loc
+    private def _first_mini_fat_loc
       get_data(60,64,4)
     end
 
-    def nr_mini_fat_sectors
+    private def _nr_mini_fat_sectors
       get_data(64,68,4)
     end
 
-    def first_difat_loc
+    private def _first_difat_loc
       get_data(68,72,4)
     end
 
-    def nr_dfat_sectors
+    private def _nr_dfat_sectors
       get_data(72,76,4)
     end
 
-    def dfat()
-      get_data(76,76+436,436)
-    end
+    # not used def dfat()
+    # not used   get_data(76,76+436,436)
+    # not used end
 
     def size() : Int32
       x = 8 + 16 + 5 * 2 + 6 + 9 * 4 + 109 * 4
@@ -161,7 +213,7 @@ module Ole
 
     def version : Int32
       r = 0
-      x = major_version()
+      x = _major_version()
       if x[0] == 0x03 && x[1] == 0x0
         r = 3
       elsif x[0] == 0x04 && x[1] == 0x0
@@ -209,7 +261,7 @@ module Ole
     end
 
     def validate_magic
-      r = (::Ole.to_hex(magic) == "0xd0cf11e0a1b11ae1")
+      r = (::Ole.to_hex(_magic) == "0xd0cf11e0a1b11ae1")
       if r == false
         @errors << "invalid Ole header signature"
       end
@@ -217,7 +269,7 @@ module Ole
     end
 
     def validate_clsid
-      r = (::Ole.to_hex(clsid) == "0x0000000000000000")
+      r = (::Ole.to_hex(_clsid) == "0x0000000000000000")
       if r == false
         @errors << "invalid Ole class id"
       end
@@ -225,7 +277,7 @@ module Ole
     end
 
     def validate_byteorder
-      r = (::Ole.to_hex(byte_order) == "0xfeff")
+      r = (::Ole.to_hex(_byte_order) == "0xfeff")
       if r == false
         @errors << "invalid Ole byte order"
       end
@@ -241,7 +293,7 @@ module Ole
     # If Major Version is 4, the Sector Shift MUST be 0x000C, specifying a sector size of 4096 bytes.
     #
     def validate_sectorshift
-      x = sector_shift
+      x = _sector_shift
       s = ::Ole.to_hex(x)
 
       case version
@@ -259,11 +311,11 @@ module Ole
     end
 
     def validate_minor_sector_shift
-       ::Ole.to_hex(mini_sector_shift) == "0x60"
+       ::Ole.to_hex(_mini_sector_shift) == "0x60"
     end
 
     def validate_reserved
-      x = reserved
+      x = _reserved
       x.each do |i|
         if x[i] != 0
           return false
@@ -275,7 +327,7 @@ module Ole
     end
 
     def validate_nr_dir_sectors
-      s = ::Ole.to_hex(nr_dfat_sectors)
+      s = ::Ole.to_hex(_nr_dfat_sectors)
       case version
         when 3
           return s == "0x0000"
