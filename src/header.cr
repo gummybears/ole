@@ -39,6 +39,7 @@ module Ole
     # property first_difat_loc      : Bytes = Bytes.new(4)       #   4 bytes    68
     # property nr_dfat_sectors      : Bytes = Bytes.new(4)       #   4 bytes    72
     # property difat                : Bytes = Bytes.new(436)     # 436 bytes    from 76, first 109 = (436/4) FAT sector locations
+    #
     property errors : Array(String) = [] of String
     property error  : String = ""
     property data   : Bytes
@@ -59,19 +60,22 @@ module Ole
     end
 
     def dump()
-      puts "magic                #{to_hex(magic())}"
-      puts "clsid                #{to_hex(clsid())}"
-      puts "minor_version        #{to_hex(minor_version())}"
-      puts "major_version        #{to_hex(major_version())}"
-      puts "byte_order           #{to_hex(byte_order())}"
-      puts "sector_shift         #{to_hex(sector_shift())}"
-      puts "mini_sector_shift    #{to_hex(mini_sector_shift())}"
-      puts "reserved             #{to_hex(reserved())}"
-      puts "first_dir_sector_loc #{to_hex(first_dir_sector_loc())}"
-      puts "trans_sig_number     #{to_hex(trans_sig_number())}"
-      puts "mini_stream_cutoff   #{to_hex(mini_stream_cutoff())}"
-      puts "first_mini_fat_loc   #{to_hex(first_mini_fat_loc())}"
-      puts "first_difat_loc      #{to_hex(first_difat_loc())}"
+
+      byte_order = Ole::ByteOrder::LittleEndian
+
+      puts "magic                #{::Ole.to_hex(magic(),byte_order)}"
+      puts "clsid                #{::Ole.to_hex(clsid())}"
+      puts "minor_version        #{::Ole.to_hex(minor_version(),byte_order,true)}"
+      puts "major_version        #{::Ole.to_hex(major_version(),byte_order,true)}"
+      puts "byte_order           #{::Ole.to_hex(byte_order(),byte_order,true)}"
+      puts "sector_shift         #{::Ole.to_hex(sector_shift(),byte_order,true)}"
+      puts "mini_sector_shift    #{::Ole.to_hex(mini_sector_shift(),byte_order,true)}"
+      puts "reserved             #{::Ole.to_hex(reserved(),byte_order,true)}"
+      puts "first_dir_sector_loc #{::Ole.to_hex(first_dir_sector_loc(),byte_order,true)}"
+      puts "trans_sig_number     #{::Ole.to_hex(trans_sig_number(),byte_order,true)}"
+      puts "mini_stream_cutoff   #{::Ole.to_hex(mini_stream_cutoff(),byte_order,true)}"
+      puts "first_mini_fat_loc   #{::Ole.to_hex(first_mini_fat_loc(),byte_order,true)}"
+      puts "first_difat_loc      #{::Ole.to_hex(first_difat_loc(),byte_order,true)}"
 
       puts "nr_dir_sectors       #{::Ole.little_endian(nr_dir_sectors())}"
       puts "nr_fat_sectors       #{::Ole.little_endian(nr_fat_sectors())}"
@@ -151,25 +155,25 @@ module Ole
       get_data(76,76+436,436)
     end
 
-    def size()
+    def size() : Int32
       x = 8 + 16 + 5 * 2 + 6 + 9 * 4 + 109 * 4
     end
 
-    def version
+    def version : Int32
       r = 0
       x = major_version()
       if x[0] == 0x03 && x[1] == 0x0
-        return 3
+        r = 3
       elsif x[0] == 0x04 && x[1] == 0x0
-        return 4
+        r = 4
       end
 
       r
     end
 
-    def sector_size
+    def sector_size : Int32
       r = 0
-      case version
+      case version()
         when 3
           r = 512
         when 4
@@ -182,8 +186,30 @@ module Ole
       r
     end
 
+    #
+    # Page 20
+    #
+    # Next Sector in Chain (variable): This field specifies the next sector number in a chain of sectors.
+    # If Header Major Version is 3, there MUST be 128 fields specified   to fill a 512-byte sector.
+    # If Header Major Version is 4, there MUST be 1,024 fields specified to fill a 4,096-byte sector.
+    #
+    def nr_fat_fields : Int32
+      r = 0
+      case version()
+        when 3
+          r = 128
+        when 4
+          r = 1024
+        else
+          @errors << "invalid Ole structure"
+          r = 0
+      end
+
+      r
+    end
+
     def validate_magic
-      r = (to_hex(magic) == "0xd0cf11e0a1b11ae1")
+      r = (::Ole.to_hex(magic) == "0xd0cf11e0a1b11ae1")
       if r == false
         @errors << "invalid Ole header signature"
       end
@@ -191,7 +217,7 @@ module Ole
     end
 
     def validate_clsid
-      r = (to_hex(clsid) == "0x0000000000000000")
+      r = (::Ole.to_hex(clsid) == "0x0000000000000000")
       if r == false
         @errors << "invalid Ole class id"
       end
@@ -199,7 +225,7 @@ module Ole
     end
 
     def validate_byteorder
-      r = (to_hex(byte_order) == "0xfeff")
+      r = (::Ole.to_hex(byte_order) == "0xfeff")
       if r == false
         @errors << "invalid Ole byte order"
       end
@@ -216,13 +242,14 @@ module Ole
     #
     def validate_sectorshift
       x = sector_shift
+      s = ::Ole.to_hex(x)
 
       case version
         when 3
-          return to_hex(x) == "0x90"
+          return s == "0x90"
 
         when 4
-          return to_hex(x) == "0xc0"
+          return s == "0xc0"
 
         else
           return false
@@ -232,7 +259,7 @@ module Ole
     end
 
     def validate_minor_sector_shift
-       to_hex(mini_sector_shift) == "0x60"
+       ::Ole.to_hex(mini_sector_shift) == "0x60"
     end
 
     def validate_reserved
@@ -248,7 +275,7 @@ module Ole
     end
 
     def validate_nr_dir_sectors
-      s = to_hex(nr_dfat_sectors)
+      s = ::Ole.to_hex(nr_dfat_sectors)
       case version
         when 3
           return s == "0x0000"

@@ -9,14 +9,24 @@ require "../src/ole.cr"
 
 describe "Ole helpers" do
   describe "to_hex" do
-    it "(x,false)" do
+    it "(x,Ole::ByteOrder::None,false)" do
       x = Bytes[0x02, 0x04]
-      ::Ole.to_hex(x,false).should eq "0x24"
+      ::Ole.to_hex(x,Ole::ByteOrder::None,false).should eq "0x24"
     end
 
-    it "(x,true)" do
+    it "(x,Ole::ByteOrder::None,true)" do
       x = Bytes[0x02, 0x04]
-      ::Ole.to_hex(x,true).should eq "0x0204"
+      ::Ole.to_hex(x,Ole::ByteOrder::None,true).should eq "0x0204"
+    end
+
+    it "(x,Ole::ByteOrder::LittleEndian,false)" do
+      x = Bytes[0x02, 0x04]
+      ::Ole.to_hex(x,Ole::ByteOrder::LittleEndian,false).should eq "0x42"
+    end
+
+    it "(x,Ole::ByteOrder::LittleEndian,false)" do
+      x = Bytes[0x01, 0x02, 0x03, 0x04]
+      ::Ole.to_hex(x,Ole::ByteOrder::LittleEndian,false).should eq "0x4321"
     end
   end
 
