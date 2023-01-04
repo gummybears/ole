@@ -52,7 +52,7 @@ describe "Ole::FileIO" do
 
   describe "sector_size" do
     it "version 3 doc" do
-      ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       ole.header.version.should eq 3
       ole.sector_size.should eq 512
     end
@@ -62,35 +62,88 @@ describe "Ole::FileIO" do
       ole.header.version.should eq 3
       ole.sector_size.should eq 512
     end
+  end
+
+  describe "max_nr_sectors" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.max_nr_sectors.should eq 119
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.max_nr_sectors.should eq 10
+    end
+  end
+
+  describe "max_dir_entries" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.max_dir_entries.should eq 8
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.max_dir_entries.should eq 8
+    end
+  end
+
+  describe "get root_entry" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      root= ole.get_root_entry()
+      root.name.should eq "Root"
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      root= ole.get_root_entry()
+      root.name.should eq "Root"
+    end
+  end
+
+  describe "get_stream_type" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.get_stream_type("worddocument").should eq Ole::Storage::Stream
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.get_stream_type("worddocument").should eq Ole::Storage::Stream
+    end
+  end
+
+  describe "get_stream_size" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.get_stream_size("worddocument").should eq 10
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.get_stream_size("worddocument").should eq 10
+    end
 
   end
 
+  describe "get_metadata" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.header.version.should eq 3
+      meta = ole.get_metadata()
+      meta.author.should eq "Laurence Ipsum"
+      meta.nr_pages.should eq 1
+    end
 
-  it "get_stream_type" do
-    ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
-    ole.header.version.should eq 3
-    ole.get_stream_type("worddocument").should eq Ole::Storage::Stream
-  end
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.header.version.should eq 3
+      meta = ole.get_metadata()
+      meta.author.should eq "Laurence Ipsum"
+      meta.nr_pages.should eq 1
+    end
 
-
-  it "get_stream_size" do
-    ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
-    ole.header.version.should eq 3
-    ole.get_stream_size("worddocument").should eq 10
-  end
-
-  it "get root_entry_name" do
-    ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
-    ole.header.version.should eq 3
-    ole.get_root_entry_name().should eq ""
-  end
-
-  it "get_metadata" do
-    ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
-    ole.header.version.should eq 3
-    meta = ole.get_metadata()
-    meta.author.should eq "Laurence Ipsum"
-    meta.nr_pages.should eq 1
   end
 
   describe "stream_exists?" do
@@ -101,10 +154,9 @@ describe "Ole::FileIO" do
     end
 
     it "false" do
-      ole = Ole::FileIO.new("./spec/docs/test_ole.doc","rb")
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       ole.header.version.should eq 3
       ole.stream_exists?("macros/vba").should eq false
     end
-
   end
 end

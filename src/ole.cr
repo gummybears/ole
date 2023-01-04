@@ -8,6 +8,7 @@
 require "./header.cr"
 require "./helper.cr"
 require "./constants.cr"
+require "./stream.cr"
 require "./metadata.cr"
 require "./direntry.cr"
 
@@ -34,7 +35,9 @@ module Ole
     property used_streams_fat     : Array(Int32) = [] of Int32
     property used_streams_minifat : Array(Int32) = [] of Int32
 
-    property direntries : Array(DirectoryEntry) = [] of DirectoryEntry
+    property max_dir_entries      : UInt32 = 0u32
+    property direntries           : Array(DirectoryEntry) = [] of DirectoryEntry
+    property root                 : DirectoryEntry
 
     def initialize(filename : String, mode : String)
 
@@ -54,6 +57,21 @@ module Ole
       @data   = Bytes.new(@size)
       @io.read_fully(@data)
       @header = Header.new(@data)
+      @max_dir_entries = (1024/DIRENTRY_SIZE).to_u32
+
+      if is_valid? == false
+        return
+      end
+
+      # is not doing anything yet
+      load_directory(@header.first_dir_sector)
+
+      #
+      # load the root directory entry starting at offset 1024
+      # ie skip the header and the FAT
+      #
+      @root = load_directory_entry(0)
+
       file.close
     end
 
@@ -91,12 +109,45 @@ module Ole
     # Open a stream, either in FAT or MiniFAT according to its size.
     # (openstream helper)
     #
-    # param start     : index of first sector
-    # param size      : size of stream or -1 if size is unknown
-    # param force_fat : if false (default), stream will be opened in FAT or MiniFAT
-    #                   according to size. If true, it will always be opened in FAT.
+    # start     : index of first sector
+    # size      : size of stream or -1 if size is unknown
+    # force_fat : if false (default), stream will be opened in FAT or MiniFAT
+    #             according to size. If true, it will always be opened in FAT.
     #
-    def open_stream(start : Int32, size = UNKNOWN_SIZE, force_fat : Bool = false)
+    def open_stream(start : Int32, size = UNKNOWN_SIZE, force_fat : Bool = false) : Ole::Stream
+
+      #
+      # stream size is compared to the mini_stream_cutoff_size threshold
+      #
+      if size < @header.mini_stream_cutoff && !force_fat
+
+        # TODO #
+        # TODO # ministream object
+        # TODO #
+        # TODO if @ministream == false
+        # TODO
+        # TODO   #
+        # TODO   # load mini FAT
+        # TODO   #
+        # TODO   load_minifat()
+        # TODO
+        # TODO   #
+        # TODO   # The first sector index of the mini FAT stream is stored in the root directory entry
+        # TODO   #
+        # TODO   size_ministream = @root.size
+        # TODO   ministream = open_stream(@root.isectStart, size_ministream, true)
+        # TODO
+        # TODO   #return OleStream(fp=self.ministream, sect=start, size=size,
+        # TODO   #               offset=0, sectorsize=self.minisectorsize,
+        # TODO   #               fat=self.minifat, filesize=self.ministream.size,
+        # TODO   #               olefileio=self)
+      else
+
+        # standard stream
+        # return OleStream(fp=self.fp, sect=start, size=size,   offset=self.sectorsize, sectorsize=self.sectorsize, fat=self.fat, filesize=self._filesize, olefileio=self)
+
+      end
+
     end
 
     #
@@ -107,7 +158,8 @@ module Ole
     #
     # Note : filename is case-insensitive.
     #
-    def open_stream(filename : String)
+    def open_stream(name : String)
+
     end
 
     #
@@ -184,7 +236,7 @@ module Ole
       puts "dump FAT"
       puts
 
-      x = ::Ole.little_endian(@header.nr_fat_sectors)
+      x = @header.nr_fat_sectors
       if x == 0
         return
       end
@@ -218,6 +270,19 @@ module Ole
     end
 
     #
+    # returns the maximun sector size for this file
+    #
+    # Note: -1 because header doesn't count
+    #
+    def max_nr_sectors() : Int32
+      s = sector_size()
+      x = ((@size + s - 1)/s) - 1
+      return x.to_i32
+    end
+
+
+
+    #
     # Dump sector (for debugging only)
     #
     def dump_sector(sector : Int32, first_index : Int32 = 0)
@@ -227,8 +292,34 @@ module Ole
     # Load the directory given by sector index
     # of directory stream
     #
-    def load_directory(sector : Int32)
+    def load_directory(sector : UInt32)
     end
+
+    #
+    # Load a directory entry from the directory.
+    # This method should only be called once for each storage/stream when
+    # loading the directory.
+    #
+    # Sid is the index of storage/stream in the directory.
+    # and returns a DirectoryEntry object
+    #
+    # Error: if the entry has always been referenced.
+    #
+    def load_directory_entry(sid : UInt32) : Ole::DirectoryEntry
+
+      spos = 1024 + sid * DIRENTRY_SIZE
+      epos = spos + DIRENTRY_SIZE
+      data = @data[spos..epos-1]
+
+      direntry = Ole::DirectoryEntry.new(data,sid)
+      return direntry
+      #  self.directory_fp.seek(sid * 128)
+      #  entry = self.directory_fp.read(128)
+      #  self.direntries[sid] = OleDirectoryEntry(entry, sid, self)
+      #  return self.direntries[sid]
+
+    end
+
 
     #
     # Read given sector from file on disk
@@ -290,19 +381,6 @@ module Ole
     end
 
     #
-    # Load a directory entry from the directory.
-    # This method should only be called once for each storage/stream when
-    # loading the directory.
-    #
-    # Sid is the index of storage/stream in the directory.
-    # and returns a DirectoryEntry object
-    #
-    # Error: if the entry has always been referenced.
-    #
-    def load_directory_entry(sid : Int32)
-    end
-
-    #
     # Returns directory entry of given filename. (openstream helper)
     # Note: this method is case-insensitive.
     #
@@ -335,19 +413,19 @@ module Ole
     # name    : path of stream in storage tree
     # returns : size of a stream in the OLE container, in bytes.
     #
-    def get_stream_size(name : String) : Int32
+    def get_stream_size(name : String) : UInt32
 
       found, sid = find(name)
       if found
         entry = direntries[sid]
         if entry.type != Ole::Storage::Stream
-          return 0
+          return 0u32
         end
 
         return entry.size
       end
 
-      return 0
+      return 0u32
     end
 
     def get_metadata() : Ole::MetaData
@@ -382,9 +460,11 @@ module Ole
       s
     end
 
-    # returns the name of the Root entry
-    def get_root_entry_name() : String
-      "todo"
+    #
+    # returns the Root directory entry
+    #
+    def get_root_entry() : Ole::DirectoryEntry
+      @root
     end
   end
 end

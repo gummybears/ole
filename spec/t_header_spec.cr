@@ -7,24 +7,6 @@
 require "./spec_helper"
 require "../src/ole.cr"
 
-    # # this should be set to 0x3e00
-    # ::Ole.to_hex(header.byte_order).should           eq "0xfeff"
-    # ::Ole.to_hex(header.sector_shift).should         eq "0x90"
-    # ::Ole.to_hex(header.mini_sector_shift).should    eq "0x60"
-    # ::Ole.to_hex(header.reserved).should             eq "0x000000"
-    # ::Ole.to_hex(header.nr_dir_sectors).should       eq "0x0000"
-    # ::Ole.to_hex(header.nr_fat_sectors).should       eq "0x1000"
-    # ::Ole.to_hex(header.first_dir_sector_loc).should eq "0x75000"
-    # ::Ole.to_hex(header.trans_sig_number).should     eq "0x0000"
-    # ::Ole.to_hex(header.mini_stream_cutoff).should   eq "0x01000"
-    # ::Ole.to_hex(header.first_mini_fat_loc).should   eq "0x2000"
-    # ::Ole.to_hex(header.nr_mini_fat_sectors).should  eq "0x1000"
-    # ::Ole.to_hex(header.first_difat_loc).should      eq "0xfeffffff"
-    # ::Ole.to_hex(header.nr_dfat_sectors).should      eq "0x0000"
-    # ::Ole.to_hex(header.dfat).should                 eq "0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-
-
-
 describe "Ole:Header" do
 
   #
@@ -141,17 +123,17 @@ describe "Ole:Header" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.nr_dir_sectors.should eq 1
+      header.nr_dir_sectors.should eq 0
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.nr_dir_sectors.should eq 1
+      header.nr_dir_sectors.should eq 0
     end
   end
 
-  describe "nr_fat_sectors()" do
+  describe "nr_fat_sectors" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
@@ -165,17 +147,17 @@ describe "Ole:Header" do
     end
   end
 
-  describe "first_dir_sector_loc" do
+  describe "first_dir_sector" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.first_dir_sector_loc.should eq 0x75
+      header.first_dir_sector.should eq 117
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.first_dir_sector_loc.should eq 0x75
+      header.first_dir_sector.should eq 8
     end
   end
 
@@ -183,51 +165,156 @@ describe "Ole:Header" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.trans_sig_number.should eq 0x75
+      header.trans_sig_number.should eq 0
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.trans_sig_number.should eq 0x75
+      header.trans_sig_number.should eq 0
     end
   end
 
+  describe "mini_stream_cutoff" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.mini_stream_cutoff.should eq 4096
+    end
 
-    # ::Ole.to_hex(header.trans_sig_number).should     eq "0x0000"
-    # ::Ole.to_hex(header.mini_stream_cutoff).should   eq "0x01000"
-    # ::Ole.to_hex(header.first_mini_fat_loc).should   eq "0x2000"
-    # ::Ole.to_hex(header.nr_mini_fat_sectors).should  eq "0x1000"
-    # ::Ole.to_hex(header.first_difat_loc).should      eq "0xfeffffff"
-    # ::Ole.to_hex(header.nr_dfat_sectors).should      eq "0x0000"
-
-
-
-
-  it "size" do
-    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-    header = ole.get_header()
-    header.size.should eq 512
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.mini_stream_cutoff.should eq 4096
+    end
   end
 
-  it "version" do
-    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-    header = ole.get_header()
-    header.version.should eq 3
+  describe "first_mini_fat_loc" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.first_mini_fat_loc.should eq 2
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.first_mini_fat_loc.should eq 2
+    end
   end
 
-  it "sector_size" do
-    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-    header = ole.get_header()
-    header.sector_size.should eq 512
+  describe "nr_mini_fat_sectors" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.nr_mini_fat_sectors.should eq 1
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.nr_mini_fat_sectors.should eq 1
+    end
   end
 
-  it "validate" do
-    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-    header = ole.get_header()
-    header.validate.should eq true
-    header.errors.size.should eq 0
+  describe "first_difat_loc" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.first_difat_loc.should eq 4294967294
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.first_difat_loc.should eq 4294967294
+    end
   end
 
+  describe "nr_dfat_sectors" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.nr_dfat_sectors.should eq 0
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.nr_dfat_sectors.should eq 0
+    end
+  end
+
+  describe "size" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.size.should eq 512
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.size.should eq 512
+    end
+  end
+
+  describe "version" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.version.should eq 3
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.version.should eq 3
+    end
+  end
+
+  describe "sector_size" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.sector_size.should eq 512
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.sector_size.should eq 512
+    end
+  end
+
+  describe "mini_sector_size (computed)" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.mini_sector_size().should eq 12
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.mini_sector_size().should eq 12
+    end
+  end
+
+  describe "validate" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      header = ole.get_header()
+      header.validate.should eq true
+      header.errors.size.should eq 0
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      header = ole.get_header()
+      header.validate.should eq true
+      header.errors.size.should eq 0
+    end
+  end
 end
 

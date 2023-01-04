@@ -9,7 +9,7 @@ require "./helper.cr"
 module Ole
 
   UNKNOWN_SIZE    = 0x7FFFFFFF
-  #MAGIC           = 0xD0CF11E0A1B11AE1
+  # old code MAGIC           = 0xD0CF11E0A1B11AE1
 
   #
   # Added constants for Sector ID's
