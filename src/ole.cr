@@ -8,9 +8,12 @@
 require "./header.cr"
 require "./helper.cr"
 require "./constants.cr"
+require "./convert.cr"
 require "./stream.cr"
 require "./metadata.cr"
 require "./direntry.cr"
+
+require "./dump.cr"
 
 #
 # see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/28488197-8193-49d7-84d8-dfd692418ccd
@@ -19,33 +22,34 @@ module Ole
 
   class FileIO
 
-    property mode     : String
-    property filename : String
-    property error    : String = ""
-    property status   : Int32 = -1
-    property header   : Ole::Header
-
-    # size of file
-    property size     : Int64
-    property io       : IO
-    property data     : Bytes
-
-    property fat      : Array(Int32) = [] of Int32
-
-    property used_streams_fat     : Array(Int32) = [] of Int32
-    property used_streams_minifat : Array(Int32) = [] of Int32
+    property mode                 : String = ""
+    property filename             : String = ""
+    property errors               : Array(String) = [] of String
+    property status               : Int32 = -1
+    property header               : Ole::Header
+    property size                 : Int64 = 0
+    property io                   : IO
+    property data                 : Bytes
+    property root                 : DirectoryEntry = DirectoryEntry.new
+    property fat                  : Array(Int32) = [] of Int32
 
     property max_dir_entries      : UInt32 = 0u32
     property direntries           : Array(DirectoryEntry) = [] of DirectoryEntry
-    property root                 : DirectoryEntry
+    property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
+
+    # not used yet ?? property used_streams_fat     : Array(Int32) = [] of Int32
+    # not used yet ?? property used_streams_minifat : Array(Int32) = [] of Int32
+
+    include Dump
 
     def initialize(filename : String, mode : String)
 
       @filename = filename
       @mode     = mode
       if File.exists?(filename) == false
-        @error = "file '#{filename}' not found"
+        @errors << "file '#{filename}' not found"
         @status = -1
+        return
       end
 
       @status = 0
@@ -56,21 +60,17 @@ module Ole
 
       @data   = Bytes.new(@size)
       @io.read_fully(@data)
-      @header = Header.new(@data)
+
+      @header          = Header.new(@data)
+      @byte_order      = @header.determine_byteorder
       @max_dir_entries = (1024/DIRENTRY_SIZE).to_u32
 
       if is_valid? == false
         return
       end
 
-      # is not doing anything yet
       load_directory(@header.first_dir_sector)
 
-      #
-      # load the root directory entry starting at offset 1024
-      # ie skip the header and the FAT
-      #
-      @root = load_directory_entry(0)
 
       file.close
     end
@@ -209,58 +209,6 @@ module Ole
     end
 
     #
-    # dump some header information
-    # debug purposes
-    #
-    def dump
-      puts
-      puts "dump of file #{@filename}"
-      puts
-      @header.dump()
-      dump_fat()
-    end
-
-    #
-    # Dump directory (for debugging only)
-    #
-    def dump_directory
-      # @root.dump()
-    end
-
-    #
-    # Dump FAT (for debugging only)
-    #
-    def dump_fat
-
-      puts
-      puts "dump FAT"
-      puts
-
-      x = @header.nr_fat_sectors
-      if x == 0
-        return
-      end
-
-      startpos      = @header.sector_size
-      nr_fat_fields = @header.nr_fat_fields
-      byte_order    = Ole::ByteOrder::LittleEndian
-
-      #
-      # read 4 bytes at a time
-      #
-      spos = startpos
-      epos = startpos + nr_fat_fields
-      (spos..epos).step(4).each do |i|
-        spos = i
-        epos = spos + 4 - 1
-
-        d = @data[spos..epos]
-        v = ::Ole.to_hex(d,byte_order,true)
-        puts "0x#{i.to_s(16)} : #{v}"
-      end
-    end
-
-    #
     # returns the sector size (@header.sector_size)
     # version 3 : 512
     # version 4 : 4096
@@ -280,184 +228,34 @@ module Ole
       return x.to_i32
     end
 
-
-
-    #
-    # Dump sector (for debugging only)
-    #
-    def dump_sector(sector : Int32, first_index : Int32 = 0)
-    end
-
     #
     # Load the directory given by sector index
     # of directory stream
     #
     def load_directory(sector : UInt32)
+
+      offset   = @header.size.to_u32
+      direntry = get_directory_entry(sector,offset)
+
+      #
+      # add direntry to array
+      #
+      @direntries << direntry
+      @root = @direntries[0]
+
     end
 
     #
-    # Load a directory entry from the directory.
-    # This method should only be called once for each storage/stream when
-    # loading the directory.
+    # decode and return a directory entry
     #
-    # Sid is the index of storage/stream in the directory.
-    # and returns a DirectoryEntry object
-    #
-    # Error: if the entry has always been referenced.
-    #
-    def load_directory_entry(sid : UInt32) : Ole::DirectoryEntry
+    def get_directory_entry(sector : UInt32, offset : UInt32) : Ole::DirectoryEntry
 
-      spos = 1024 + sid * DIRENTRY_SIZE
+      spos = offset + sector_size() * sector
       epos = spos + DIRENTRY_SIZE
-      data = @data[spos..epos-1]
 
-      direntry = Ole::DirectoryEntry.new(data,sid)
+      x    = @data[spos..epos-1]
+      direntry = Ole::DirectoryEntry.new(x,@byte_order)
       return direntry
-      #  self.directory_fp.seek(sid * 128)
-      #  entry = self.directory_fp.read(128)
-      #  self.direntries[sid] = OleDirectoryEntry(entry, sid, self)
-      #  return self.direntries[sid]
-
-    end
-
-
-    #
-    # Read given sector from file on disk
-    # given a sector index, returns sector data as a string
-    #
-    def get_sector(sector : Int32)
-    end
-
-    #
-    # Write given sector to file on disk.
-    # given a sector index, sector data and some padding
-    # Note: padding is single byte, only needed if data < sector size
-    #
-    def write_sector(sector : Int32, data : Bytes, padding : String ="0x00")
-    end
-
-    #
-    # Write given sector to file on disk.
-    #
-    # pos     : file position
-    # data    : bytes, sector data
-    # padding : single byte, padding character if data < sector size
-    #
-    def write_mini_sector(pos : Int32, data : Bytes, padding : String = "0x0")
-    end
-
-    #
-    # Load the FAT table
-    #
-    def load_fat()
-    end
-
-    #
-    # Adds the indexes of the given sector to the FAT
-    #
-    # sector  : index containing the first FAT sector
-    # returns : index of last FAT sector.
-    #
-    def load_fat_sector(sector : Int32)
-    end
-
-    #
-    # Adds the indexes of the given sector to the FAT
-    #
-    # sector  : array of long integers
-    # returns : index of last FAT sector.
-    #
-    #
-    def load_fat_sector(sector : Array(Int32))
-    end
-
-    #
-    # Load the MiniFAT table
-    #
-    # The MiniFAT table is stored in a standard sub-stream, pointed to by a header
-    # field.
-    #
-    def load_minifat()
-    end
-
-    #
-    # Returns directory entry of given filename. (openstream helper)
-    # Note: this method is case-insensitive.
-    #
-    # filename: path of stream in storage tree (except root entry), either:
-    #
-    #     - a string using Unix path syntax, for example:
-    #       'storage_1/storage_1.2/stream'
-    #     - or a list of storage filenames, path to the desired stream/storage.
-    #       Example: ['storage_1', 'storage_1.2', 'stream']
-    #
-    # returns   : sid of requested filename
-    # exception : file not found
-    #
-    def find(name : String) : {Bool, Int32}
-      return false, 0
-    end
-
-    #
-    #  Test if given name exists as a stream or a storage in the OLE
-    #  container.
-    #
-    #  Note: name is case-insensitive.
-    #
-    def stream_exists?(name : String) : Bool
-      found, r = find(name)
-      return found
-    end
-
-    #
-    # name    : path of stream in storage tree
-    # returns : size of a stream in the OLE container, in bytes.
-    #
-    def get_stream_size(name : String) : UInt32
-
-      found, sid = find(name)
-      if found
-        entry = direntries[sid]
-        if entry.type != Ole::Storage::Stream
-          return 0u32
-        end
-
-        return entry.size
-      end
-
-      return 0u32
-    end
-
-    def get_metadata() : Ole::MetaData
-      Ole::MetaData.new
-    end
-
-    #
-    # Test if given filename exists as a stream or a storage in the OLE
-    # container, and return its type.
-    #
-    # filename : path of stream in storage tree
-    # returns  : false if object does not exist, its entry type (>0) otherwise
-    #
-    # STGTY_STREAM  : a stream
-    # STGTY_STORAGE : a storage
-    # STGTY_ROOT    : the root entry
-    #
-    def get_stream_type(filename : String) : Bool
-      r = false
-      #  try:
-      #      sid = self._find(filename)
-      #      entry = self.direntries[sid]
-      #      return entry.entry_type
-      #  except Exception:
-      #
-      #
-      return r
-    end
-
-    def list_directories() : Array(String)
-      s = [] of String
-      s
     end
 
     #
@@ -466,5 +264,146 @@ module Ole
     def get_root_entry() : Ole::DirectoryEntry
       @root
     end
+
+#################### All code after this comment is not used/untested ####################################################
+
+    # TODO ?? #
+    # TODO ?? #
+    # TODO ?? # given a sector index, returns sector data as a string
+    # TODO ?? #
+    # TODO ?? def get_sector(sector : Int32)
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Write given sector to file on disk.
+    # TODO ?? # given a sector index, sector data and some padding
+    # TODO ?? # Note: padding is single byte, only needed if data < sector size
+    # TODO ?? #
+    # TODO ?? def write_sector(sector : Int32, data : Bytes, padding : String ="0x00")
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Write given sector to file on disk.
+    # TODO ?? #
+    # TODO ?? # pos     : file position
+    # TODO ?? # data    : bytes, sector data
+    # TODO ?? # padding : single byte, padding character if data < sector size
+    # TODO ?? #
+    # TODO ?? def write_mini_sector(pos : Int32, data : Bytes, padding : String = "0x0")
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Load the FAT table
+    # TODO ?? #
+    # TODO ?? def load_fat()
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Adds the indexes of the given sector to the FAT
+    # TODO ?? #
+    # TODO ?? # sector  : index containing the first FAT sector
+    # TODO ?? # returns : index of last FAT sector.
+    # TODO ?? #
+    # TODO ?? def load_fat_sector(sector : Int32)
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Adds the indexes of the given sector to the FAT
+    # TODO ?? #
+    # TODO ?? # sector  : array of long integers
+    # TODO ?? # returns : index of last FAT sector.
+    # TODO ?? #
+    # TODO ?? #
+    # TODO ?? def load_fat_sector(sector : Array(Int32))
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Load the MiniFAT table
+    # TODO ?? #
+    # TODO ?? # The MiniFAT table is stored in a standard sub-stream, pointed to by a header
+    # TODO ?? # field.
+    # TODO ?? #
+    # TODO ?? def load_minifat()
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Returns directory entry of given filename. (openstream helper)
+    # TODO ?? # Note: this method is case-insensitive.
+    # TODO ?? #
+    # TODO ?? # filename: path of stream in storage tree (except root entry), either:
+    # TODO ?? #
+    # TODO ?? #     - a string using Unix path syntax, for example:
+    # TODO ?? #       'storage_1/storage_1.2/stream'
+    # TODO ?? #     - or a list of storage filenames, path to the desired stream/storage.
+    # TODO ?? #       Example: ['storage_1', 'storage_1.2', 'stream']
+    # TODO ?? #
+    # TODO ?? # returns   : sid of requested filename
+    # TODO ?? # exception : file not found
+    # TODO ?? #
+    # TODO ?? def find(name : String) : {Bool, Int32}
+    # TODO ??   return false, 0
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? #  Test if given name exists as a stream or a storage in the OLE
+    # TODO ?? #  container.
+    # TODO ?? #
+    # TODO ?? #  Note: name is case-insensitive.
+    # TODO ?? #
+    # TODO ?? def stream_exists?(name : String) : Bool
+    # TODO ??   found, r = find(name)
+    # TODO ??   return found
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # name    : path of stream in storage tree
+    # TODO ?? # returns : size of a stream in the OLE container, in bytes.
+    # TODO ?? #
+    # TODO ?? def get_stream_size(name : String) : UInt32
+    # TODO ??
+    # TODO ??   found, sid = find(name)
+    # TODO ??   if found
+    # TODO ??     entry = direntries[sid]
+    # TODO ??     if entry.type != Ole::Storage::Stream
+    # TODO ??       return 0u32
+    # TODO ??     end
+    # TODO ??
+    # TODO ??     return entry.size
+    # TODO ??   end
+    # TODO ??
+    # TODO ??   return 0u32
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? def get_metadata() : Ole::MetaData
+    # TODO ??   Ole::MetaData.new
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? #
+    # TODO ?? # Test if given filename exists as a stream or a storage in the OLE
+    # TODO ?? # container, and return its type.
+    # TODO ?? #
+    # TODO ?? # filename : path of stream in storage tree
+    # TODO ?? # returns  : false if object does not exist, its entry type (>0) otherwise
+    # TODO ?? #
+    # TODO ?? # STGTY_STREAM  : a stream
+    # TODO ?? # STGTY_STORAGE : a storage
+    # TODO ?? # STGTY_ROOT    : the root entry
+    # TODO ?? #
+    # TODO ?? def get_stream_type(filename : String) : Bool
+    # TODO ??   r = false
+    # TODO ??   #  try:
+    # TODO ??   #      sid = self._find(filename)
+    # TODO ??   #      entry = self.direntries[sid]
+    # TODO ??   #      return entry.entry_type
+    # TODO ??   #  except Exception:
+    # TODO ??   #
+    # TODO ??   #
+    # TODO ??   return r
+    # TODO ?? end
+    # TODO ??
+    # TODO ?? def list_directories() : Array(String)
+    # TODO ??   s = [] of String
+    # TODO ??   s
+    # TODO ?? end
   end
 end

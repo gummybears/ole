@@ -14,7 +14,7 @@ module Ole
   #
   # Added constants for Sector ID's
   #
-  MAXREGSECT      = 0xFFFFFFFA # (-6) maximum SECT
+  MAXREGSECT      = 0xFFFFFFFA # (-6) maximum sector
   DIFSECT         = 0xFFFFFFFC # (-4) denotes a DIFAT sector in a FAT
   FATSECT         = 0xFFFFFFFD # (-3) denotes a FAT sector in a FAT
   ENDOFCHAIN      = 0xFFFFFFFE # (-2) end of a virtual stream chain
@@ -30,12 +30,12 @@ module Ole
   # Object types in storage
   #
   enum Storage
-    Empty     = 0          # empty directory entry
-    Storage   = 1          # element is a storage object
-    Stream    = 2          # element is a stream object
-    Lockbytes = 3          # element is an ILockBytes object
-    Property  = 4          # element is an IPropertyStorage object
-    Root      = 5          # element is a root storage
+    Empty     = 0 # empty directory entry
+    Storage   = 1 # element is a storage object
+    Stream    = 2 # element is a stream object
+    Lockbytes = 3 # element is an ILockBytes object
+    Property  = 4 # element is an IPropertyStorage object
+    Root      = 5 # element is a root storage
   end
 
   enum ByteOrder
@@ -44,12 +44,10 @@ module Ole
     BigEndian
   end
 
-  # old code STGTY_EMPTY     = 0          # empty directory entry
-  # old code STGTY_STORAGE   = 1          # element is a storage object
-  # old code STGTY_STREAM    = 2          # element is a stream object
-  # old code STGTY_LOCKBYTES = 3          # element is an ILockBytes object
-  # old code STGTY_PROPERTY  = 4          # element is an IPropertyStorage object
-  # old code STGTY_ROOT      = 5          # element is a root storage
+  enum Color
+    Red
+    Black
+  end
 
   #
   # Property types

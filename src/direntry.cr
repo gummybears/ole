@@ -44,29 +44,45 @@ module Ole
     property size_min     : UInt32 = 0   #   4   120, 124,  4
     property size_max     : UInt32 = 0   #   4   124, 128,  4
 
-    property errors     : Array(String) = [] of String
-    property error      : String = ""
-    property data       : Bytes
-    property sid        : UInt32 = 0u32
-    property size       : UInt32 = 0
+    property errors       : Array(String) = [] of String
+    property error        : String = ""
+    property data         : Bytes  = Bytes[0]
+    property size         : UInt32 = 0
 
-    def initialize(data : Bytes,sid : UInt32)
-      @data = data
-      @sid  = sid
+    # dummy initializer
+    def initialize
+    end
 
-      @size_name   = ::Ole.le_u16(_size_name())
-      name_encoded = _name()
+    # old code def initialize(data : Bytes,sid : UInt32, byte_order)
+    def initialize(data : Bytes,byte_order : Ole::ByteOrder)
+      @data      = data
+
       #
       # minus 2 as to NOT include the 2 bytes
       # marking the end of the string
       #
-      puts "name #{name_encoded}"
+      @size_name    = ::Ole.endian_u16(_size_name(),byte_order)
+      temp_str      = Ole::Convert.new(_name(),@size_name - 2,byte_order).to_s()
+      @name         = temp_str
 
-      name_decoded = ::Ole.le_utf16(name_encoded,@size_name - 2)
-      @type        = ::Ole.le_u8(_type())
-      @color       = ::Ole.le_u8(_color())
+      @type         = ::Ole.endian_u8(_type(),byte_order)
+      @color        = ::Ole.endian_u8(_color(),byte_order)
 
-      @name = "xxx"
+
+      @left_sid     = ::Ole.endian_u32(_left_sid(),byte_order)
+      @right_sid    = ::Ole.endian_u32(_right_sid(),byte_order)
+      @child_sid    = ::Ole.endian_u32(_child_sid(),byte_order)
+
+      temp_str      = Ole::Convert.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
+      @clsid        = temp_str
+
+      @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
+      @ctime        = ::Ole.endian_u64(_ctime(),byte_order)
+      @mtime        = ::Ole.endian_u64(_mtime(),byte_order)
+      @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
+      @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
+      @size_max     = ::Ole.endian_u32(_size_max(),byte_order)
+
     end
 
     #
@@ -135,6 +151,5 @@ module Ole
     private def _size_max()
       get_data(124,128,4)
     end
-
   end
 end

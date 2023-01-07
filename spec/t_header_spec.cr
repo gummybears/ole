@@ -5,7 +5,6 @@
 # copyright 2007-2023, ICUBIC
 #
 require "./spec_helper"
-require "../src/ole.cr"
 
 describe "Ole:Header" do
 
@@ -19,6 +18,25 @@ describe "Ole:Header" do
 
     header = ole.get_header()
     header.size.should eq 512
+  end
+
+  describe "determine byte order" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.size.should eq 61440
+      ole.status.should eq 0
+
+      header = ole.get_header()
+      header.determine_byteorder.should eq Ole::ByteOrder::LittleEndian
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+
+      header = ole.get_header()
+      header.determine_byteorder.should eq Ole::ByteOrder::LittleEndian
+    end
   end
 
   describe "magic" do
@@ -189,17 +207,17 @@ describe "Ole:Header" do
     end
   end
 
-  describe "first_mini_fat_loc" do
+  describe "first_mini_fat_pos" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.first_mini_fat_loc.should eq 2
+      header.first_mini_fat_pos.should eq 2
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.first_mini_fat_loc.should eq 2
+      header.first_mini_fat_pos.should eq 2
     end
   end
 
@@ -217,17 +235,17 @@ describe "Ole:Header" do
     end
   end
 
-  describe "first_difat_loc" do
+  describe "first_difat_pos" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.first_difat_loc.should eq 4294967294
+      header.first_difat_pos.should eq 4294967294
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.first_difat_loc.should eq 4294967294
+      header.first_difat_pos.should eq 4294967294
     end
   end
 
@@ -291,13 +309,13 @@ describe "Ole:Header" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.mini_sector_size().should eq 12
+      header.mini_sector_size().should eq 64
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.mini_sector_size().should eq 12
+      header.mini_sector_size().should eq 64
     end
   end
 

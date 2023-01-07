@@ -72,6 +72,38 @@ module Ole
     return s
   end
 
+  def self.endian_u8(bytes : Bytes, byte_order : Ole::ByteOrder)
+    x = self.le_u8(bytes)
+    if byte_order == Ole::ByteOrder::BigEndian
+      x = self.be_u8(bytes)
+    end
+    x
+  end
+
+  def self.endian_u16(bytes : Bytes, byte_order : Ole::ByteOrder)
+    x = self.le_u16(bytes)
+    if byte_order == Ole::ByteOrder::BigEndian
+      x = self.be_u16(bytes)
+    end
+    x
+  end
+
+  def self.endian_u32(bytes : Bytes, byte_order : Ole::ByteOrder)
+    x = self.le_u32(bytes)
+    if byte_order == Ole::ByteOrder::BigEndian
+      x = self.be_u32(bytes)
+    end
+    x
+  end
+
+  def self.endian_u64(bytes : Bytes, byte_order : Ole::ByteOrder)
+    x = self.le_u64(bytes)
+    if byte_order == Ole::ByteOrder::BigEndian
+      x = self.be_u64(bytes)
+    end
+    x
+  end
+
   def self.le_u8(bytes : Bytes) : UInt8
     IO::ByteFormat::LittleEndian.decode(UInt8, bytes)
   end
@@ -88,11 +120,20 @@ module Ole
     IO::ByteFormat::LittleEndian.decode(UInt64, bytes)
   end
 
-  def self.le_utf16(bytes : Bytes, length : UInt32) : String
+  def self.be_u8(bytes : Bytes) : UInt8
+    IO::ByteFormat::BigEndian.decode(UInt8, bytes)
+  end
 
-    arr = bytes[0..length-1]
-    puts "arr #{arr} size arr #{arr.size}"
-    "xxx"
+  def self.be_u16(bytes : Bytes) : UInt16
+    IO::ByteFormat::BigEndian.decode(UInt16, bytes)
+  end
+
+  def self.be_u32(bytes : Bytes) : UInt32
+    IO::ByteFormat::BigEndian.decode(UInt32, bytes)
+  end
+
+  def self.be_u64(bytes : Bytes) : UInt64
+    IO::ByteFormat::BigEndian.decode(UInt64, bytes)
   end
 
   # old code def self.little_endian(bytes : Bytes) : (Int16|Int32)

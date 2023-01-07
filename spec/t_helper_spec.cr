@@ -5,7 +5,6 @@
 # copyright 2007-2023, ICUBIC
 #
 require "./spec_helper"
-require "../src/ole.cr"
 
 describe "Ole helpers" do
   describe "to_hex" do
@@ -56,13 +55,6 @@ describe "Ole helpers" do
     it "Bytes[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]" do
       x = Bytes[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
       ::Ole.le_u64(x).should eq 578437695752307201
-    end
-  end
-
-  describe "le_utf16" do
-    it "Bytes" do
-      x = Bytes[82, 0, 111, 0, 111, 0, 116, 0, 32, 0, 69, 0, 110, 0, 116, 0, 114, 0, 121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      ::Ole.le_utf16(x,20).should eq "Root Entry"
     end
   end
 end

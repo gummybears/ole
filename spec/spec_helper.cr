@@ -8,10 +8,6 @@ require "spec"
 require "../src/ole.cr"
 require "../src/helper.cr"
 
-# def to_hex(x,leading_zero : Bool = false)
-#   ::Ole.to_hex(x,leading_zero)
-# end
-
-#def ole_storage(filename : String, mode : String)
-#  Ole::Storage.new("./spec/test_word_6.doc","rb")
-#end
+def direntry()
+  Bytes[82, 0, 111, 0, 111, 0, 116, 0, 32, 0, 69, 0, 110, 0, 116, 0, 114, 0, 121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 0, 5, 0, 255, 255, 255, 255, 255, 255, 255, 255, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 254, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0]
+end
