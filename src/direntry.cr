@@ -53,7 +53,6 @@ module Ole
     def initialize
     end
 
-    # old code def initialize(data : Bytes,sid : UInt32, byte_order)
     def initialize(data : Bytes,byte_order : Ole::ByteOrder)
       @data      = data
 
@@ -62,18 +61,17 @@ module Ole
       # marking the end of the string
       #
       @size_name    = ::Ole.endian_u16(_size_name(),byte_order)
-      temp_str      = Ole::Convert.new(_name(),@size_name - 2,byte_order).to_s()
+      temp_str      = Ole::ConvertString.new(_name(),@size_name - 2,byte_order).to_s()
       @name         = temp_str
 
       @type         = ::Ole.endian_u8(_type(),byte_order)
       @color        = ::Ole.endian_u8(_color(),byte_order)
 
-
       @left_sid     = ::Ole.endian_u32(_left_sid(),byte_order)
       @right_sid    = ::Ole.endian_u32(_right_sid(),byte_order)
       @child_sid    = ::Ole.endian_u32(_child_sid(),byte_order)
 
-      temp_str      = Ole::Convert.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
+      temp_str      = Ole::ConvertString.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
       @clsid        = temp_str
 
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)

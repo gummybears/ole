@@ -79,35 +79,10 @@ module Ole
         spos = epos + 1
       end
 
-
-      # old code lv_byte_order =  Ole::ByteOrder::LittleEndian
-
-      # read the byte order first
-      #@byte_order   = ::Ole.le_u16(_byte_order())
-      # old code lv_byte_order = @byte_order
-      # old code @magic                = ::Ole.to_raw(_magic(),lv_byte_order)
-      # old code @clsid                = ::Ole.to_raw(_clsid(),lv_byte_order)
-      # old code @minor_version        = ::Ole.le_u16(_minor_version())
-      # old code @major_version        = ::Ole.le_u16(_major_version())
-      # old code @byte_order           = ::Ole.le_u16(_byte_order())
-      # old code @sector_shift         = ::Ole.le_u16(_sector_shift())
-      # old code @mini_sector_shift    = ::Ole.le_u16(_mini_sector_shift())
-      # old code @reserved             = ::Ole.to_raw(_reserved(),lv_byte_order)
-      # old code @nr_dir_sectors       = ::Ole.le_u32(_nr_dir_sectors())
-      # old code @nr_fat_sectors       = ::Ole.le_u32(_nr_fat_sectors())
-      # old code @first_dir_sector     = ::Ole.le_u32(_first_dir_sector_loc())
-      # old code @trans_sig_number     = ::Ole.le_u32(_trans_sig_number())
-      # old code @mini_stream_cutoff   = ::Ole.le_u32(_mini_stream_cutoff())
-      # old code @first_mini_fat_loc   = ::Ole.le_u32(_first_mini_fat_loc())
-      # old code @nr_mini_fat_sectors  = ::Ole.le_u32(_nr_mini_fat_sectors())
-      # old code @first_difat_loc      = ::Ole.le_u32(_first_difat_loc())
-      # old code @nr_dfat_sectors      = ::Ole.le_u32(_nr_dfat_sectors())
-
       @magic                = ::Ole.to_raw(_magic(),@byte_order)
       @clsid                = ::Ole.to_raw(_clsid(),@byte_order)
       @minor_version        = ::Ole.endian_u16(_minor_version(),@byte_order)
       @major_version        = ::Ole.endian_u16(_major_version(),@byte_order)
-      # old code @byte_order           = ::Ole.endian_u16(_byte_order(),@byte_order)
       @sector_shift         = ::Ole.endian_u16(_sector_shift(),@byte_order)
       @mini_sector_shift    = ::Ole.endian_u16(_mini_sector_shift(),@byte_order)
       @reserved             = ::Ole.to_raw(_reserved(),@byte_order)
@@ -153,13 +128,12 @@ module Ole
       puts "clsid                #{@clsid}"
       puts "minor_version        #{@minor_version}"
       puts "major_version        #{@major_version}"
-      # old code puts "byte_order           #{@byte_order}"
 
       case @byte_order
-        when Ole::ByteOrder::LittleEndian # 0xfffe
+        when Ole::ByteOrder::LittleEndian
           puts "byte_order           LittleEndian"
 
-        when Ole::ByteOrder::BigEndian # 0xfeff
+        when Ole::ByteOrder::BigEndian
           puts "byte_order           BigEndian"
 
         else
@@ -272,22 +246,8 @@ module Ole
     end
 
     def sector_size : Int32
-      # old code r = 0
-      # old code case version()
-      # old code   when 3
-      # old code     r = 2 ** @sector_shift
-      # old code     # old code r = 512
-      # old code   when 4
-      # old code     # old code r = 4096
-      # old code     r = 2 ** @sector_shift
-      # old code   else
-      # old code     @errors << "invalid Ole sector size"
-      # old code     r = 0
-      # old code end
-
       2 ** @sector_shift
     end
-
 
     def mini_sector_size() : Int32
       2 ** @mini_sector_shift

@@ -1,5 +1,5 @@
 #
-# convert.cr
+# convert_string.cr
 #
 # author : W.F.F. Neimeijer
 # copyright 2007-2023, ICUBIC
@@ -13,12 +13,12 @@ require "./constants.cr"
 # into a string
 #
 module Ole
-  class Convert
+  class ConvertString
 
-    property arr        : Array(UInt16) = [] of UInt16
-    property bytes      : Bytes
-    property size       : UInt32
-    property byte_order : Ole::ByteOrder
+    property arr        : Array(UInt16)  = [] of UInt16
+    property bytes      : Bytes          = Bytes[0]
+    property size       : UInt32         = 0u32
+    property byte_order : Ole::ByteOrder = Ole::ByteOrder::None
 
     def initialize(bytes : Bytes, size : UInt32, byte_order)
 
@@ -67,7 +67,6 @@ module Ole
     private def to_slice(arr)
       Slice.new(arr.size) {|i| arr[i]}
     end
-
 
     def get_array()
       @arr

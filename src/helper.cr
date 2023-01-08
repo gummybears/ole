@@ -135,18 +135,4 @@ module Ole
   def self.be_u64(bytes : Bytes) : UInt64
     IO::ByteFormat::BigEndian.decode(UInt64, bytes)
   end
-
-  # old code def self.little_endian(bytes : Bytes) : (Int16|Int32)
-  # old code   r = 0
-  # old code   case bytes.size
-  # old code     when 2
-  # old code       r = IO::ByteFormat::LittleEndian.decode(Int16, bytes)
-  # old code     when 4
-  # old code       r = IO::ByteFormat::LittleEndian.decode(Int32, bytes)
-  # old code   else
-  # old code     return 0
-  # old code   end
-  # old code
-  # old code   return r
-  # old code end
 end

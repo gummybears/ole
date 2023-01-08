@@ -1,17 +1,17 @@
 #
-# t_convert_spec.cr
+# t_convert_string_spec.cr
 #
 # author : W.F.F. Neimeijer
 # copyright 2007-2023, ICUBIC
 #
 require "./spec_helper"
 
-describe "Ole::Convert" do
+describe "Ole::ConvertString" do
 
   it "make_even" do
     x = Bytes[82, 0, 111]
 
-    c = Ole::Convert.new(x,6,Ole::ByteOrder::LittleEndian)
+    c = Ole::ConvertString.new(x,6,Ole::ByteOrder::LittleEndian)
     c.make_even()
 
     x = c.get_array()
@@ -22,7 +22,7 @@ describe "Ole::Convert" do
   it "make_even" do
     x = Bytes[82, 0, 111]
 
-    c = Ole::Convert.new(x,10,Ole::ByteOrder::LittleEndian)
+    c = Ole::ConvertString.new(x,10,Ole::ByteOrder::LittleEndian)
     c.make_even()
 
     x = c.get_array()
@@ -33,7 +33,7 @@ describe "Ole::Convert" do
   it "swap" do
     x = Bytes[82, 0, 111]
 
-    c = Ole::Convert.new(x,4,Ole::ByteOrder::LittleEndian)
+    c = Ole::ConvertString.new(x,4,Ole::ByteOrder::LittleEndian)
 
     c.make_even()
     c.swap()
@@ -46,15 +46,7 @@ describe "Ole::Convert" do
   it "to_s()" do
     x = Bytes[82, 0, 111, 0, 111, 0, 116, 0]
 
-    c = Ole::Convert.new(x,8,Ole::ByteOrder::LittleEndian)
+    c = Ole::ConvertString.new(x,8,Ole::ByteOrder::LittleEndian)
     c.to_s().should eq "\u0000R\u0000o\u0000o\u0000t"
   end
-
-  it "to_datetime()" do
-    x = Bytes[82, 0, 111, 0, 111, 0, 116, 0]
-
-    c = Ole::Convert.new(x,8,Ole::ByteOrder::LittleEndian)
-    c.to_datetime().to_s().should eq Time.local.to_s()
-  end
-
 end
