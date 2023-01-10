@@ -14,113 +14,104 @@ require "./constants.cr"
 module Ole
   class ConvertDateTime
 
-    property bytes      : Bytes          = Bytes[0]
-    property size       : UInt32         = 0u32
-    property byte_order : Ole::ByteOrder = Ole::ByteOrder::None
+    property bytes   : Bytes = Bytes[0]
+    property day     : Int32 = 0
+    property month   : Int32 = 0
+    property year    : Int32 = 0
+    property hours   : Int32 = 0
+    property minutes : Int32 = 0
+    property seconds : Int32 = 0
 
-    def initialize(bytes : Bytes, size : UInt32, byte_order)
-
-      @bytes      = bytes
-      @size       = size
-      @byte_order = byte_order
+    def initialize(bytes : Bytes)
+      @bytes = bytes
+      to_datetime()
     end
 
-    def to_datetime() : Time
+    def reverse() : Bytes
+      x = @bytes.clone
+      x.reverse!
 
-      # # assume the bytes array is already in little endian format
-      # (0..@bytes.size-1).each do |i|
-      #   @arr << @bytes[i].to_u16
-      # end
+      #to_datetime()
+    end
+
+    #def to_u64(bytes : Bytes) : UInt64
+    #  IO::ByteFormat::BigEndian.decode(UInt64, bytes)
+    #end
+
+    def to_u64() : UInt64
+      x = reverse()
+      IO::ByteFormat::BigEndian.decode(UInt64, x)
+    end
+
+    #
+    # calls to_u64
+    #
+    def to_datetime() # : Time
+
       #
-      # # #
-      # # # step 1 : need to swap bytes (Little Endian)
-      # # #
-      # # swap()
+      # to_u64 calls reverse and returns a BigEndian encoded u64 value
+      # Note: should make the other methods private
+      #       will do that after more tests
       #
-      # # #
-      # # # now convert the values to a 64 bit value
-      # # #
-      # #
-      # # s = ""
-      # # a = ""
-      # # (0..@arr.size-1).each do |i|
-      # #   a = sprintf("%0.2x",@arr[i])
-      # #   s = s + a
-      # #
-      # #   puts "i #{i} a #{a}"
-      # # end
-      # # puts "s #{s}"
-      # # #t0 = 0xa50103e4d5c2009cu64
-      # # #puts "t0 #{t0} #{t0.to_s(10)}"
-      # #
-      # # t0 =      @arr[0].to_u64 * 268435456u64
-      # # puts "1) t0 #{t0} #{arr[0].to_s(16)}"
-      # # t0 = t0 + @arr[1].to_u64 * 16777216u64
-      # # puts "2) t0 #{t0} #{arr[1].to_s(16)}"
-      # #
-      # # t0 = t0 + @arr[2].to_u64 * 1048576u64
-      # # puts "3) t0 #{t0}"
-      # #
-      # # t0 = t0 + @arr[3].to_u64 * 65536u64
-      # # puts "4) t0 #{t0}"
-      # #
-      # # t0 = t0 + @arr[4].to_u64 * 4096u64
-      # # puts "5) t0 #{t0}"
-      # #
-      # # t0 = t0 + @arr[5].to_u64 * 256u64
-      # # puts "6) t0 #{t0}"
-      # #
-      # # t0 = t0 + @arr[6].to_u64 * 16u64
-      # # t0 = t0 + @arr[7].to_u64
-      # #
-      # # puts t0
+      t0 = to_u64()
+
       #
-      # #
-      # # step 2 : Fractional amount of a second is rfrac = t0 modulo 10,000,000
-      # #
-      # rfrac = t0 % 1000000
+      # step 1 : Fractional amount of a second is rfrac = t0 modulo 10,000,000
       #
-      # #
-      # # step 3 : Remaining entire seconds
-      # #
-      # t1 = t0 / 1000000
+      rfrac = t0 % TEN_MILLION # 10_000_000
+
       #
-      # #
-      # # step 4 : Seconds in a minute
-      # #
-      # rsec = t1 %  60
+      # step 2 : Remaining entire seconds
       #
-      # #
-      # # step 5 : Remaining entire minutes
-      # #
-      # t2 = t1 / 60
+      t1 = t0 / TEN_MILLION # 10_000_000
+
       #
-      # #
-      # # step 6 : Minutes in an hour
-      # #
-      # rmin = t2 % 60
+      # step 3 : Seconds in a minute
       #
-      # #
-      # # step 7 : Remaining entire hours
-      # #
-      # t3 = t2 / 60
+      rsec     = t1 % 60
+      @seconds = rsec.to_i
+
       #
-      # #
-      # # step 8 : Hours in a day
-      # #
-      # rhour = t3 % 24
+      # step 4 : Remaining entire minutes
       #
-      # #
-      # # step 9 : Remaining entire days
-      # #
-      # t4 = t3 / 24
+      t2 = t1 / 60
+
       #
-      # #
-      # # step 10 : Entire years from 1601-Jan-015
-      # #
+      # step 5 : Minutes in an hour
+      #
+      rmin = t2 % 60
+      @minutes = rmin.to_i
+
+      #
+      # step 6 : Remaining entire hours
+      #
+      t3 = t2 / 60
+      puts "t3 #{t3}"
+
+      #
+      # step 7 : Hours in a day
+      #
+      rhour  = t3 % 24
+      @hours = rhour.to_i
+      puts "hours #{@hours}"
+
+      #
+      # step 8 : Remaining entire days
+      #
+      t4 = t3 / 24
+      puts "t4 #{t4}"
+
+      #
+      # step 9 : Entire years since 01-Jan-1601
+      #
       # t5 = t4 /
       # ryear = 1601 + number of full years in t4
-      Time.local
+
+      # Time.local
+    end
+
+    def to_s() : String
+      Time.local.to_s()
     end
   end
 end

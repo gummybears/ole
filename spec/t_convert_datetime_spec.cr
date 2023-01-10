@@ -8,30 +8,67 @@ require "./spec_helper"
 
 describe "Ole::ConvertDateTime" do
 
-  #
-  # Example:
-  #
-  # The time stamp value is 0x 01 A5 E4 03 C2 D5 9C 00
-  # Note: byte order is not assumed but taken to be BigEndian
-  #       so we need to convert the timestamp to LittleEndian
-  #
-  # The final result is 1977-Apr-24 01:30:00.
-
-  #
-  # Example
-  # Value as found in file : 801E 9213 4BB4 BA01
-  # value is in Little Endian format
-
-  # The code will convert this value by reversing the bytes
-  # Result is : 0x01BAB44B13921E80
-  #
-  # The datetime value is : 11/16/1995 5:43:45 PM
-  #
-  it "to_datetime()" do
-    x = Bytes[0x01, 0xA5, 0xE4, 0x03, 0xC2, 0xD5, 0x9C, 0x00]
-
-    c = Ole::ConvertDateTime.new(x,8,Ole::ByteOrder::LittleEndian)
-    c.to_datetime().to_s().should eq Time.local.to_s()
+  it "reverse" do
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.reverse.should eq Bytes[1, 165, 228, 3, 194, 213, 156, 0]
   end
 
+  it "to_u64" do
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+
+    # to_u64 calls reverse
+    #                    118,751,670,000,000,000
+    c.to_u64().should eq 118751670000000000
+  end
+
+  it "seconds" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.seconds.should eq 0
+  end
+
+  it "minutes" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.minutes.should eq 30
+  end
+
+  it "hours" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.hours.should eq 1
+  end
+
+  it "to_datetime" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.to_s().should eq Time.local.to_s()
+  end
+
+  it "day" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.day.should eq 16
+  end
+
+  it "month" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.month.should eq 11
+  end
+
+  it "year" do
+    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.year.should eq 1995
+  end
 end

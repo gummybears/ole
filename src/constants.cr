@@ -111,4 +111,6 @@ module Ole
 
   # size of a directory entry: 128 bytes
   DIRENTRY_SIZE = 128
+
+  TEN_MILLION = 10_000_000
 end
