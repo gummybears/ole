@@ -86,32 +86,58 @@ module Ole
       # step 6 : Remaining entire hours
       #
       t3 = t2 / 60
-      puts "t3 #{t3}"
 
       #
       # step 7 : Hours in a day
       #
       rhour  = t3 % 24
       @hours = rhour.to_i
-      puts "hours #{@hours}"
 
       #
       # step 8 : Remaining entire days
       #
       t4 = t3 / 24
-      puts "t4 #{t4}"
 
       #
       # step 9 : Entire years since 01-Jan-1601
       #
-      # t5 = t4 /
-      # ryear = 1601 + number of full years in t4
+      x = (t4 / 365.25).to_i
+      @year = x + YEAR_1601
 
-      # Time.local
+      #
+      # step 10 : remaining days in year
+      #
+      nr_days_since_1601 = (Time.utc(@year,1,1) - Time.utc(YEAR_1601,1,1)).days.to_i
+      t5 = (t4 - nr_days_since_1601).to_i
+
+      nr_full_months = t5 / 30
+      @month = 1 + nr_full_months.to_i
+
+      #
+      # step 11 : remaining days in month
+      #
+      nr_remaining_days_in_month = (Time.utc(@year,@month,1) - Time.utc(@year,1,1)).days.to_i
+      t6 = (t5 - nr_remaining_days_in_month).to_i
+      @day = 1 + t6
+    end
+
+    #
+    # if time = 01-01-1601, returns Time.utc
+    # else return the time as computed
+    #
+    def to_time : Time
+      t1 = Time.utc(YEAR_1601,1,1)
+      t2 = Time.utc(@year,@month,@day)
+      if t1 == t2
+        return t1
+      end
+
+      return Time.utc(@year,@month,@day,@hours,@minutes,@seconds)
+
     end
 
     def to_s() : String
-      Time.local.to_s()
+      to_time.to_s()
     end
   end
 end

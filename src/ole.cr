@@ -38,9 +38,6 @@ module Ole
     property direntries           : Array(DirectoryEntry) = [] of DirectoryEntry
     property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
 
-    # not used yet ?? property used_streams_fat     : Array(Int32) = [] of Int32
-    # not used yet ?? property used_streams_minifat : Array(Int32) = [] of Int32
-
     include Dump
 
     def initialize(filename : String, mode : String)
@@ -58,7 +55,6 @@ module Ole
       file    = File.new(filename)
       @size   = file.size
       @io     = file
-
       @data   = Bytes.new(@size)
       @io.read_fully(@data)
 

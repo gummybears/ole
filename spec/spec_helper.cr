@@ -25,15 +25,3 @@ def datetime_bigendian_64
   x.reverse!
 end
 
-#   #
-#   # Example :
-#   # Value as found in file : 80 1E 92 13 4B B4 BA 01
-#   # value is in Little Endian format
-#   #
-#   # The code will convert this value by reversing the bytes
-#   # Result is : 0x01BAB44B13921E80
-#   #
-#   # The datetime value is : 11/16/1995 5:43:45 PM
-#   #
-#
-#     # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]

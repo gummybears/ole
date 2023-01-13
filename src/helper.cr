@@ -120,6 +120,14 @@ module Ole
     IO::ByteFormat::LittleEndian.decode(UInt64, bytes)
   end
 
+  def self.le_string(bytes : Bytes, len : Int32) : String
+    Ole::ConvertString.new(bytes,len.to_u32,Ole::ByteOrder::LittleEndian).to_s()
+  end
+
+  def self.le_datetime(bytes : Bytes) : Time
+    Ole::ConvertDateTime.new(bytes).to_time()
+  end
+
   def self.be_u8(bytes : Bytes) : UInt8
     IO::ByteFormat::BigEndian.decode(UInt8, bytes)
   end

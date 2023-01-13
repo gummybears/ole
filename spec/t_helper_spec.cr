@@ -44,7 +44,6 @@ describe "Ole helpers" do
   end
 
   describe "le_u32" do
-
     it "Bytes[0x34, 0x12, 0x56, 0x78]" do
       x = Bytes[0x34, 0x12, 0x56, 0x78]
       ::Ole.le_u32(x).should eq 2018906676

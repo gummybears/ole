@@ -75,14 +75,14 @@ describe "Ole::DirectoryEntry" do
     sid  = 0u32
     data = direntry()
     direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    direntry.ctime.should eq 0
+    direntry.ctime.to_s().should eq "1601-01-01 00:00:00 UTC"
   end
 
   it "mtime" do
     sid  = 0u32
     data = direntry()
     direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    direntry.mtime.should eq 0
+    direntry.mtime.to_s().should eq "1601-01-01 00:00:00 UTC"
   end
 
   it "start_sector" do

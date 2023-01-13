@@ -113,4 +113,5 @@ module Ole
   DIRENTRY_SIZE = 128
 
   TEN_MILLION = 10_000_000
+  YEAR_1601   = 1601
 end

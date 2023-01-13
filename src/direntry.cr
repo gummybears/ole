@@ -38,8 +38,8 @@ module Ole
     property child_sid    : UInt32 = 0   #   4    76,  80,  4
     property clsid        : String = ""  #  16    80,  96, 16
     property user_flags   : UInt32 = 0   #   4    96, 100,  4
-    property ctime        : UInt64 = 0   #   8   100, 108,  8
-    property mtime        : UInt64 = 0   #   8   108, 116,  8
+    property ctime        : Time = Time.local # UInt64 = 0   #   8   100, 108,  8
+    property mtime        : Time = Time.local # UInt64 = 0   #   8   108, 116,  8
     property start_sector : UInt32 = 0   #   4   116, 120,  4
     property size_min     : UInt32 = 0   #   4   120, 124,  4
     property size_max     : UInt32 = 0   #   4   124, 128,  4
@@ -54,16 +54,17 @@ module Ole
     end
 
     def initialize(data : Bytes,byte_order : Ole::ByteOrder)
-      @data      = data
+      @data        = data
 
       #
       # minus 2 as to NOT include the 2 bytes
       # marking the end of the string
       #
       @size_name    = ::Ole.endian_u16(_size_name(),byte_order)
-      temp_str      = Ole::ConvertString.new(_name(),@size_name - 2,byte_order).to_s()
-      @name         = temp_str
+      # old code temp_str      = Ole::ConvertString.new(_name(),@size_name - 2,byte_order).to_s()
+      # old code @name         = temp_str
 
+      @name         = ::Ole.le_string(_name(),@size_name-2).to_s()
       @type         = ::Ole.endian_u8(_type(),byte_order)
       @color        = ::Ole.endian_u8(_color(),byte_order)
 
@@ -71,12 +72,22 @@ module Ole
       @right_sid    = ::Ole.endian_u32(_right_sid(),byte_order)
       @child_sid    = ::Ole.endian_u32(_child_sid(),byte_order)
 
-      temp_str      = Ole::ConvertString.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
-      @clsid        = temp_str
+      #
+      # size of clsid is 16, but need to remove last 2 bytes from _clsid as these are null bytes
+      # to indicate end of UTF16 string
+      #
 
+      # old code temp_str = Ole::ConvertString.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
+      # old code @clsid   = temp_str
+
+      @clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
-      @ctime        = ::Ole.endian_u64(_ctime(),byte_order)
-      @mtime        = ::Ole.endian_u64(_mtime(),byte_order)
+      # old code @ctime        = Ole::ConvertDateTime.new(_ctime()).to_time()
+      # old code @mtime        = Ole::ConvertDateTime.new(_mtime()).to_time()
+
+      @ctime        = ::Ole.le_datetime(_ctime())
+      @mtime        = ::Ole.le_datetime(_mtime())
+
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
       @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
       @size_max     = ::Ole.endian_u32(_size_max(),byte_order)

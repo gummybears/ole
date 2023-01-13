@@ -24,14 +24,12 @@ describe "Ole::ConvertDateTime" do
   end
 
   it "seconds" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
     x = datetime_bigendian_64
     c = Ole::ConvertDateTime.new(x)
     c.seconds.should eq 0
   end
 
   it "minutes" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
     x = datetime_bigendian_64
     c = Ole::ConvertDateTime.new(x)
     c.minutes.should eq 30
@@ -44,31 +42,27 @@ describe "Ole::ConvertDateTime" do
     c.hours.should eq 1
   end
 
-  it "to_datetime" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+  it "year" do
     x = datetime_bigendian_64
     c = Ole::ConvertDateTime.new(x)
-    c.to_s().should eq Time.local.to_s()
-  end
-
-  it "day" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
-    x = datetime_bigendian_64
-    c = Ole::ConvertDateTime.new(x)
-    c.day.should eq 16
+    c.year.should eq 1977
   end
 
   it "month" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
     x = datetime_bigendian_64
     c = Ole::ConvertDateTime.new(x)
-    c.month.should eq 11
+    c.month.should eq 4
   end
 
-  it "year" do
-    # x = Bytes[ 0x80, 0x1E, 0x92, 0x13, 0x4B, 0xB4, 0xBA, 0x01]
+  it "day" do
     x = datetime_bigendian_64
     c = Ole::ConvertDateTime.new(x)
-    c.year.should eq 1995
+    c.day.should eq 24
+  end
+
+  it "to_datetime" do
+    x = datetime_bigendian_64
+    c = Ole::ConvertDateTime.new(x)
+    c.to_s().should eq "1977-04-24 01:30:00 UTC"
   end
 end

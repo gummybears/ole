@@ -8,33 +8,37 @@ require "./spec_helper"
 
 describe "Ole::ConvertString" do
 
-  it "make_even" do
-    x = Bytes[82, 0, 111]
+  describe "make_even" do
+    it "length is 6" do
+      len = 6u32
+      x   = Bytes[82, 0, 111]
 
-    c = Ole::ConvertString.new(x,6,Ole::ByteOrder::LittleEndian)
-    c.make_even()
+      c = Ole::ConvertString.new(x,len,Ole::ByteOrder::LittleEndian)
+      c.make_even()
 
-    x = c.get_array()
-    x.size.should eq 6
-    x.should eq [82, 0, 111, 0, 0, 0]
-  end
+      x = c.get_array()
+      x.size.should eq 6
+      x.should eq [82, 0, 111, 0, 0, 0]
+    end
 
-  it "make_even" do
-    x = Bytes[82, 0, 111]
+    it "length is 10" do
+      len = 10u32
 
-    c = Ole::ConvertString.new(x,10,Ole::ByteOrder::LittleEndian)
-    c.make_even()
+      x = Bytes[82, 0, 111]
+      c = Ole::ConvertString.new(x,len,Ole::ByteOrder::LittleEndian)
+      c.make_even()
 
-    x = c.get_array()
-    x.size.should eq 10
-    x.should eq [82, 0, 111, 0, 0, 0, 0, 0, 0, 0]
+      x = c.get_array()
+      x.size.should eq 10
+      x.should eq [82, 0, 111, 0, 0, 0, 0, 0, 0, 0]
+    end
   end
 
   it "swap" do
-    x = Bytes[82, 0, 111]
+    len = 4u32
+    x   = Bytes[82, 0, 111]
 
-    c = Ole::ConvertString.new(x,4,Ole::ByteOrder::LittleEndian)
-
+    c = Ole::ConvertString.new(x,len,Ole::ByteOrder::LittleEndian)
     c.make_even()
     c.swap()
 
@@ -44,9 +48,10 @@ describe "Ole::ConvertString" do
   end
 
   it "to_s()" do
-    x = Bytes[82, 0, 111, 0, 111, 0, 116, 0]
+    len = 8u32
+    x   = Bytes[82, 0, 111, 0, 111, 0, 116, 0]
 
-    c = Ole::ConvertString.new(x,8,Ole::ByteOrder::LittleEndian)
+    c = Ole::ConvertString.new(x,len,Ole::ByteOrder::LittleEndian)
     c.to_s().should eq "\u0000R\u0000o\u0000o\u0000t"
   end
 end
