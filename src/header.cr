@@ -48,7 +48,7 @@ module Ole
     property clsid                : String = ""
     property minor_version        : UInt16 = 0
     property major_version        : UInt16 = 0
-    property byte_order           : Ole::ByteOrder # UInt16 = 0
+    property byte_order           : Ole::ByteOrder
     property sector_shift         : UInt16 = 0
     property mini_sector_shift    : UInt16 = 0
     property reserved             : String = ""
@@ -143,7 +143,6 @@ module Ole
       puts "sector_shift         #{@sector_shift}"
       puts "sector_size          #{sector_size()}"
       puts "mini_sector_shift    #{@mini_sector_shift}"
-      puts "mini_sector_size     #{2**@mini_sector_shift}"
       puts "reserved             #{@reserved}"
       puts "first_dir_sector     #{@first_dir_sector}"
       puts "trans_sig_number     #{@trans_sig_number}"

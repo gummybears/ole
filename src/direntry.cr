@@ -82,16 +82,19 @@ module Ole
 
       @clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
-      # old code @ctime        = Ole::ConvertDateTime.new(_ctime()).to_time()
-      # old code @mtime        = Ole::ConvertDateTime.new(_mtime()).to_time()
-
       @ctime        = ::Ole.le_datetime(_ctime())
       @mtime        = ::Ole.le_datetime(_mtime())
 
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
       @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
       @size_max     = ::Ole.endian_u32(_size_max(),byte_order)
+    end
 
+    #
+    # size of directory entry is 128
+    #
+    def size() : Int32
+      64 + 2 + 1 + 1 + 4 + 4 + 4 + 16 + 4 + 8 + 8 + 4 + 4 +4
     end
 
     #

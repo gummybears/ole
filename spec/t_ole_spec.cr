@@ -91,97 +91,56 @@ describe "Ole::FileIO" do
     end
   end
 
-  describe "max_dir_entries" do
-    it "doc" do
-      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-      ole.max_dir_entries.should eq 8
-    end
-
-    it "excel" do
-      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-      ole.max_dir_entries.should eq 8
-    end
-  end
-
   describe "get root_entry" do
     it "doc" do
-      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-      root= ole.get_root_entry()
+      ole  = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      root = ole.get_root_entry()
       root.name.should eq "\u0000R\u0000o\u0000o\u0000t\u0000 \u0000E\u0000n\u0000t\u0000r\u0000y\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
     end
 
     it "excel" do
-      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-      root= ole.get_root_entry()
+      ole  = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      root = ole.get_root_entry()
       root.name.should eq "\u0000R\u0000o\u0000o\u0000t\u0000 \u0000E\u0000n\u0000t\u0000r\u0000y\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
     end
   end
 
-  # TODO describe "get_stream_type" do
-  # TODO   it "doc" do
-  # TODO     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-  # TODO     ole.get_stream_type("worddocument").should eq Ole::Storage::Stream
-  # TODO   end
-  # TODO
-  # TODO   it "excel" do
-  # TODO     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # TODO     ole.get_stream_type("worddocument").should eq Ole::Storage::Stream
-  # TODO   end
-  # TODO end
-  # TODO
-  # TODO describe "get_stream_size" do
-  # TODO   it "doc" do
-  # TODO     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-  # TODO     ole.get_stream_size("worddocument").should eq 10
-  # TODO   end
-  # TODO
-  # TODO   it "excel" do
-  # TODO     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # TODO     ole.get_stream_size("worddocument").should eq 10
-  # TODO   end
-  # TODO
-  # TODO end
+  describe "fat" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      fat = ole.fat()
+      fat.should eq [0,1,2]
+    end
 
-  # TODO describe "get_metadata" do
-  # TODO   it "doc" do
-  # TODO     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-  # TODO     ole.header.version.should eq 3
-  # TODO     meta = ole.get_metadata()
-  # TODO     meta.author.should eq "Laurence Ipsum"
-  # TODO     meta.nr_pages.should eq 1
-  # TODO   end
-  # TODO
-  # TODO   it "excel" do
-  # TODO     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # TODO     ole.header.version.should eq 3
-  # TODO     meta = ole.get_metadata()
-  # TODO     meta.author.should eq "Laurence Ipsum"
-  # TODO     meta.nr_pages.should eq 1
-  # TODO   end
-  # TODO
-  # TODO end
+    it "excel" do
+      ole  = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      fat = ole.fat()
+      fat.should eq [4294967293, 4294967295, 4294967294, 4, 5, 6, 7, 4294967294, 9, 4294967294, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295, 4294967295]
+    end
+  end
 
-  # TODO describe "list_directories" do
-  # TODO   ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # TODO   ole.size.should eq 5632
-  # TODO   ole.status.should eq 0
-  # TODO   ole.header.version.should eq 3
-  # TODO   dirs = ole.list_directories()
-  # TODO   #dirs.size.should eq 0
-  # TODO   #dirs[0].should eq "Root Entry"
-  # TODO end
+  describe "max_nr_sectors" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.max_nr_sectors.should eq 119
+    end
 
-  # TODO describe "stream_exists?" do
-  # TODO   it "true" do
-  # TODO     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-  # TODO     ole.header.version.should eq 3
-  # TODO     ole.stream_exists?("worddocument").should eq true
-  # TODO   end
-  # TODO
-  # TODO   it "false" do
-  # TODO     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # TODO     ole.header.version.should eq 3
-  # TODO     ole.stream_exists?("macros/vba").should eq false
-  # TODO   end
-  # TODO end
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.max_nr_sectors.should eq 10
+    end
+  end
+
+
+  pending "max_dir_entries" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.max_dir_entries.should eq 8
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.max_dir_entries.should eq 8
+    end
+  end
 end

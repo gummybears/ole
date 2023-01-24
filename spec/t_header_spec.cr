@@ -11,13 +11,23 @@ describe "Ole:Header" do
   #
   # testing just the raw data, no byte order assumed (little or big endian)
   #
-  it "get_header" do
-    ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-    ole.size.should eq 61440
-    ole.status.should eq 0
+  describe "get_header" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.size.should eq 61440
+      ole.status.should eq 0
 
-    header = ole.get_header()
-    header.size.should eq 512
+      header = ole.get_header()
+      header.size.should eq 512
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+
+      header = ole.get_header()
+      header.size.should eq 512
+    end
   end
 
   describe "determine byte order" do
@@ -240,12 +250,14 @@ describe "Ole:Header" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
       header.first_difat_pos.should eq 4294967294
+      header.first_difat_pos.should eq Ole::ENDOFCHAIN
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
       header.first_difat_pos.should eq 4294967294
+      header.first_difat_pos.should eq Ole::ENDOFCHAIN
     end
   end
 
@@ -309,13 +321,13 @@ describe "Ole:Header" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.mini_sector_size().should eq 64
+      header.mini_sector_size.should eq 64
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.mini_sector_size().should eq 64
+      header.mini_sector_size.should eq 64
     end
   end
 
