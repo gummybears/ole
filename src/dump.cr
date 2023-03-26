@@ -37,7 +37,21 @@ module Ole
 
         d = @data[spos..epos]
         v = ::Ole.to_hex(d,@byte_order,true)
-        puts "0x#{i.to_s(16)} : #{v}"
+        case v
+          when "0xfffffffd"
+            puts "0x#{i.to_s(16)} : fat sector"
+
+          when "0xfffffffe"
+            puts "0x#{i.to_s(16)} : end of chain"
+
+          when "0xffffffff"
+            puts "0x#{i.to_s(16)} : free sector"
+
+          else
+            puts "0x#{i.to_s(16)} : #{v}"
+
+        end
+
       end
     end
 

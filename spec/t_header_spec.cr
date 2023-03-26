@@ -317,17 +317,17 @@ describe "Ole:Header" do
     end
   end
 
-  describe "mini_sector_size (computed)" do
+  describe "minifat_sector_size (computed)" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.mini_sector_size.should eq 64
+      header.minifat_sector_size.should eq 64
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.mini_sector_size.should eq 64
+      header.minifat_sector_size.should eq 64
     end
   end
 

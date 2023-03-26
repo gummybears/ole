@@ -61,10 +61,15 @@ module Ole
       # marking the end of the string
       #
       @size_name    = ::Ole.endian_u16(_size_name(),byte_order)
-      # old code temp_str      = Ole::ConvertString.new(_name(),@size_name - 2,byte_order).to_s()
-      # old code @name         = temp_str
 
-      @name         = ::Ole.le_string(_name(),@size_name-2).to_s()
+      #
+      # size_name could be 0
+      #
+      if @size_name > 2
+        @name = ::Ole.le_string(_name(),@size_name-2).to_s()
+      else
+        @name = "empty"
+      end
       @type         = ::Ole.endian_u8(_type(),byte_order)
       @color        = ::Ole.endian_u8(_color(),byte_order)
 
@@ -76,9 +81,6 @@ module Ole
       # size of clsid is 16, but need to remove last 2 bytes from _clsid as these are null bytes
       # to indicate end of UTF16 string
       #
-
-      # old code temp_str = Ole::ConvertString.new(_clsid(),(16 - 2).to_u32,byte_order).to_s()
-      # old code @clsid   = temp_str
 
       @clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
@@ -93,7 +95,7 @@ module Ole
     #
     # size of directory entry is 128
     #
-    def size() : Int32
+    def self.size() : Int32
       64 + 2 + 1 + 1 + 4 + 4 + 4 + 16 + 4 + 8 + 8 + 4 + 4 +4
     end
 

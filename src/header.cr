@@ -244,11 +244,16 @@ module Ole
       r
     end
 
+    #
+    # returns the sector size
+    # version 3 : 512
+    # version 4 : 4096
+    #
     def sector_size : Int32
       2 ** @sector_shift
     end
 
-    def mini_sector_size() : Int32
+    def minifat_sector_size() : Int32
       2 ** @mini_sector_shift
     end
 

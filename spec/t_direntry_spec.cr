@@ -15,11 +15,12 @@ describe "Ole::DirectoryEntry" do
     direntry.name.should eq "\u0000R\u0000o\u0000o\u0000t\u0000 \u0000E\u0000n\u0000t\u0000r\u0000y\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
   end
 
-  it "size" do
-    sid  = 0u32
-    data = direntry()
-    direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    direntry.size.should eq 128
+  it "self.size" do
+    # change instance method into class method : sid  = 0u32
+    # change instance method into class method : data = direntry()
+    # change instance method into class method : direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
+    # change instance method into class method : direntry.size.should eq 128
+    Ole::DirectoryEntry.size.should eq 128
   end
 
   it "type" do
