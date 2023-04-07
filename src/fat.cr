@@ -10,9 +10,9 @@ module Ole
   module Fat
 
     #
-    # Load the FAT table
+    # Read the FAT table
     #
-    def load_fat()
+    def read_fat()
 
       @header.difat.each do |sector|
         if sector == Ole::ENDOFCHAIN
@@ -23,7 +23,7 @@ module Ole
           break
         end
 
-        load_fat_sector(sector.to_u32)
+        read_fat_sector(sector.to_u32)
       end
     end
 
@@ -32,11 +32,14 @@ module Ole
     # the raw data contains Little Endian encoded sector indices
     # 4 bytes long
     #
-    def load_fat_sector(sector : UInt32)
+    def read_fat_sector(sector : UInt32)
 
       bytes = read_sector(sector)
       if bytes.size != @header.sector_size
-        raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        #raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        @errors << "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        @status = -1
+        return
       end
 
       (0...bytes.size - 1).step(4) do |x|
@@ -45,6 +48,5 @@ module Ole
         @fat << sector
       end
     end
-
   end
 end

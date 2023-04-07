@@ -17,6 +17,7 @@ require "./direntry.cr"
 require "./dump.cr"
 require "./directory.cr"
 require "./fat.cr"
+require "./minifat.cr"
 require "./readers.cr"
 
 
@@ -42,11 +43,10 @@ module Ole
     property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
     property fat_sectors          : Array(UInt32) = [] of UInt32
 
-    # old code property max_dir_entries      : UInt32 = 0u32
-
     include Dump
     include Directory
     include Fat
+    include MiniFat
     include Readers
 
     def initialize(filename : String, mode : String)
@@ -73,13 +73,13 @@ module Ole
         return
       end
 
-      load_fat()
-      # old code load_directories()
-      # old code load_directory(@header.first_dir_sector)
-
+      read_fat()
       read_directories(@header.first_dir_sector)
-      @root = @directories[0]
 
+      if @directories[0].start_sector != Ole::ENDOFCHAIN
+        read_ministream()
+        read_minifat(@header.first_mini_fat_pos)
+      end
 
       file.close
     end
@@ -93,8 +93,19 @@ module Ole
     end
 
     def sector_size() : Int32
-      @header.sector_size
+      @header.sector_size()
     end
+
+    #
+    # returns the mini sector size (@header.mini_sector_size)
+    #
+    def minifat_sector_size() : Int32
+      @header.minifat_sector_size()
+    end
+
+    # def minifat_sector_size() : Int32
+    #   @header.minifat_sector_size
+    # end
 
 
     def filesize() : Int64
@@ -108,7 +119,6 @@ module Ole
     #
     def max_nr_sectors() : Int32
       s = sector_size()
-      # old code x = ((filesize() + s - 1)/s) - 1
       x = ((@size + s - 1)/s) - 1
       return x.to_i32
     end

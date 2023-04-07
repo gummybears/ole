@@ -12,9 +12,11 @@ module Ole
     #
     # returns the entire contents of a chain starting at the given sector
     #
+    # old code private def read_directories(sector : UInt32)
+    #
     private def read_directories(sector : UInt32)
 
-      # old code sector_array = [] of Bytes
+      # old code sector = @header.first_dir_sector
 
       #
       # keep a list of sectors we've already read
@@ -31,20 +33,17 @@ module Ole
 
         data        = read_sector(sector)
         dir_entries = directory_entries(data)
-
         dir_entries.each do |dir|
           @directories << dir
         end
-        # old code sector_array << data
 
         next_sector = @fat[sector]
-        # old code puts "sector #{sector} next #{next_sector}"
-
         if h.has_key?(next_sector)
           #
           # error, already read this sector
           #
-          puts "ole warning: already read sector #{sector}"
+          @errors << "ole warning: already read sector #{sector}"
+          @status = -1
           break
         end
 
@@ -52,55 +51,68 @@ module Ole
         sector = next_sector
       end
 
+      #
+      # set the root directory
+      #
+      set_root()
 
-      ## old code puts "size of buffer #{buffer.size} size of element #{buffer[0].size}"
-      #return buffer
     end
 
-    private def _read_mini_chain(sector : UInt32)
-
-      # buffer = [] of Bytes
-      #
-      # #
-      # # keep a list of sectors we've already read
-      # #
-      # h = Hash(UInt32,UInt32).new
-      # h[sector] = sector
-      #
-      # next_sector = Ole::ENDOFCHAIN
-      # while true
-      #
-      #   if sector == Ole::ENDOFCHAIN
-      #     puts "break while loop #{sector}"
-      #     break
-      #   end
-      #
-      #   data        = read_sector(sector)
-      #   next_sector = @fat[sector]
-      #
-      #   puts "sector #{sector} next #{next_sector}"
-      #
-      #
-      #   if h.has_key?(next_sector)
-      #     # error, already read this sector
-      #     puts "already read sector #{sector}"
-      #     break
-      #   end
-      #
-      #   h[next_sector] = next_sector
-      #   sector = next_sector
-      # end
-      #return sector
+    def set_root()
+      @root = @directories[0]
     end
 
+    #private
+    def read_minifat_chain(sector : UInt32)
 
-    def read_mini_chain(sector : UInt32)
-      #return _read_chain(sector_start,"minifat")
+      #
+      # keep a list of sectors we've already read
+      #
+      h = Hash(UInt32,UInt32).new
+      h[sector] = sector
+
+      # old code puts "minifat chain for sector #{sector}"
+
+      next_sector = Ole::ENDOFCHAIN
+      while true
+
+        if sector == Ole::ENDOFCHAIN
+          # old code puts "sector is end of chain"
+          break
+        end
+
+        data = read_sector(sector)
+        # old code puts "sector #{sector} data size #{data.size}"
+
+        minifat_entries = read_minifat(data)
+        minifat_entries.each do |e|
+          @minifat << e
+        end
+
+        next_sector = @fat[sector]
+        # old code puts "next sector is #{next_sector}"
+        if h.has_key?(next_sector)
+          #
+          # error, already read this sector
+          #
+          @errors << "ole warning: already read sector #{sector}"
+          @status = -1
+          break
+        end
+
+        h[next_sector] = next_sector
+        sector = next_sector
+      end
+
     end
 
-    def read_chain(sector : UInt32)
-      return _read_chain(sector)
-    end
+    # old code def read_mini_chain(sector : UInt32)
+    # old code   return _read_minifat_chain()
+    # old code end
+
+    # old code def read_chain(sector : UInt32)
+    # old code   return _read_chain(sector)
+    # old code end
 
     def read_sector(index : UInt32) : Bytes
       x    = sector_size()
@@ -109,5 +121,11 @@ module Ole
       @data[spos..epos - 1]
     end
 
+    # old code def read_mini_sector(index : UInt32) : Bytes
+    # old code   x    = mini_sector_size()
+    # old code   spos = x * ( index + 1 )
+    # old code   epos = spos + x
+    # old code   @data[spos..epos - 1]
+    # old code end
   end
 end
