@@ -41,13 +41,13 @@ module Ole
     property ctime        : Time = Time.local # UInt64 = 0   #   8   100, 108,  8
     property mtime        : Time = Time.local # UInt64 = 0   #   8   108, 116,  8
     property start_sector : UInt32 = 0   #   4   116, 120,  4
-    property size_min     : UInt32 = 0   #   4   120, 124,  4
-    property size_max     : UInt32 = 0   #   4   124, 128,  4
-
+    # old code property size_min     : UInt32 = 0   #   4   120, 124,  4
+    # old code property size_max     : UInt32 = 0   #   4   124, 128,  4
+    property size         : UInt64 = 0
     property errors       : Array(String) = [] of String
     property error        : String = ""
     property data         : Bytes  = Bytes[0]
-    property size         : UInt32 = 0
+    # property size         : UInt32 = 0
 
     # dummy initializer
     def initialize
@@ -65,10 +65,11 @@ module Ole
       #
       # size_name could be 0
       #
+      @name = "empty"
       if @size_name > 2
         @name = ::Ole.le_string(_name(),@size_name-2).to_s()
-      else
-        @name = "empty"
+      # old code else
+      # old code   @name = "empty"
       end
       @type         = ::Ole.endian_u8(_type(),byte_order)
       @color        = ::Ole.endian_u8(_color(),byte_order)
@@ -88,8 +89,9 @@ module Ole
       @mtime        = ::Ole.le_datetime(_mtime())
 
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
-      @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
-      @size_max     = ::Ole.endian_u32(_size_max(),byte_order)
+      @size         = ::Ole.endian_u64(_size(),byte_order)
+      # old code @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
+      # old code @size_max     = ::Ole.endian_u32(_size_max(),byte_order)
     end
 
     #
@@ -158,12 +160,17 @@ module Ole
       get_data(116,120,4)
     end
 
-    private def _size_min()
-      get_data(120,124,4)
+    # old code private def _size_min()
+    # old code   get_data(120,124,4)
+    # old code end
+    # old code
+    # old code private def _size_max()
+    # old code   get_data(124,128,4)
+    # old code end
+
+    private def _size()
+      get_data(120,128,8)
     end
 
-    private def _size_max()
-      get_data(124,128,4)
-    end
   end
 end

@@ -5,100 +5,65 @@
 # copyright 2007-2023, ICUBIC
 #
 
-module Ole
-
-  module MiniFat
-
-    #
-    # Read the Ministream
-    #
-    def read_ministream()
-    end
-
-
-    #
-    # Read the Mini FAT table
-    #
-    def read_minifat(sector : UInt32)
-
-      #
-      # Start at sector @header.first_mini_fat_pos
-      # take into account the header offset
-      #
-      # so for sector 2 we need to go to
-      #
-      # offset = (sector + 1) * sector_size()
-      #        = 3 * 512 = 1536
-      #
-
-      # old code sector = @header.first_mini_fat_pos
-      # old code while true
-      # old code
-      # old code   if sector == Ole::ENDOFCHAIN
-      # old code     break
-      # old code   end
-      # old code
-      # old code   if sector == Ole::FREESECT
-      # old code     break
-      # old code   end
-      # old code
-      # old code   read_minifat_sector(sector.to_u32)
-      # old code end
-
-
-      #while true
-      #
-      #  if sector == Ole::ENDOFCHAIN
-      #    break
-      #  end
-      #
-      #  if sector == Ole::FREESECT
-      #    break
-      #  end
-      #
-      #  read_minifat_chain(sector)
-      #end
-
-      read_minifat_chain(sector)
-    end
-
-    # old code def read_minifat_sector(sector : UInt32)
-    # old code
-    # old code   #bytes = read_minifat_sector(sector)
-    # old code   bytes = read_sector()
-    # old code   #if bytes.size != @header.mini_sector_size()
-    # old code   if bytes.size != @header.sector_size()
-    # old code     @errors << "broken mini FAT, sector size is #{bytes.size} but should be #{@header.mini_sector_size}"
-    # old code     @status = -1
-    # old code     return
-    # old code   end
-    # old code
-    # old code   (0...bytes.size - 1).step(4) do |x|
-    # old code     arr    = bytes[x..x+3]
-    # old code     sector = ::Ole.endian_u32(arr,@header.byte_order)
-    # old code     @minifat << sector
-    # old code   end
-    # old code end
-
-    def read_minifat(bytes : Bytes) : Array(UInt32)
-
-      ids = [] of UInt32
-
-      #if bytes.size != @header.mini_sector_size()
-      if bytes.size != @header.sector_size()
-        @errors << "broken mini FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
-        @status = -1
-        return ids
-      end
-
-      (0...bytes.size - 1).step(4) do |x|
-        arr    = bytes[x..x+3]
-        sector = ::Ole.endian_u32(arr,@header.byte_order)
-        ids << sector
-      end
-
-      return ids
-    end
-
-  end
-end
+# moved to readers.cr module Ole
+# moved to readers.cr
+# moved to readers.cr   module MiniFat
+# moved to readers.cr
+# moved to readers.cr     #
+# moved to readers.cr     # Read the Ministream
+# moved to readers.cr     #
+# moved to readers.cr     def read_ministream(bytes : Bytes) : Bytes
+# moved to readers.cr
+# moved to readers.cr       x = bytes.dup
+# moved to readers.cr       # unsure about this code ?? if x.size < @directories[0].size
+# moved to readers.cr       # unsure about this code ??   set_error("specified size is larger than actual stream length #{bytes.size}")
+# moved to readers.cr       # unsure about this code ??   return x
+# moved to readers.cr       # unsure about this code ?? end
+# moved to readers.cr       #x = bytes[0..@directories[0].size]
+# moved to readers.cr
+# moved to readers.cr       #s = ::Ole.to_raw(x,@byte_order)
+# moved to readers.cr       #s = ::Ole.le_string(x,x.size).to_s()
+# moved to readers.cr       return x
+# moved to readers.cr     end
+# moved to readers.cr
+# moved to readers.cr     #
+# moved to readers.cr     # Read the Mini FAT table
+# moved to readers.cr     #
+# moved to readers.cr     def read_minifat(sector : UInt32)
+# moved to readers.cr       #
+# moved to readers.cr       # Start at sector @header.first_mini_fat_pos
+# moved to readers.cr       # take into account the header offset
+# moved to readers.cr       #
+# moved to readers.cr       # so for sector 2 we need to go to
+# moved to readers.cr       #
+# moved to readers.cr       # offset = (sector + 1) * sector_size()
+# moved to readers.cr       #        = 3 * 512 = 1536
+# moved to readers.cr       #
+# moved to readers.cr       read_minifat_chain(sector)
+# moved to readers.cr     end
+# moved to readers.cr
+# moved to readers.cr     def read_minifat(bytes : Bytes) : Array(UInt32)
+# moved to readers.cr
+# moved to readers.cr       ids = [] of UInt32
+# moved to readers.cr
+# moved to readers.cr       #if bytes.size != @header.mini_sector_size()
+# moved to readers.cr       if bytes.size != @header.sector_size()
+# moved to readers.cr         #@errors << "broken mini FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+# moved to readers.cr         #@status = -1
+# moved to readers.cr         set_error("broken mini FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
+# moved to readers.cr
+# moved to readers.cr         return ids
+# moved to readers.cr       end
+# moved to readers.cr
+# moved to readers.cr       (0...bytes.size - 1).step(4) do |x|
+# moved to readers.cr         arr    = bytes[x..x+3]
+# moved to readers.cr         sector = ::Ole.endian_u32(arr,@header.byte_order)
+# moved to readers.cr         ids << sector
+# moved to readers.cr       end
+# moved to readers.cr
+# moved to readers.cr       return ids
+# moved to readers.cr     end
+# moved to readers.cr
+# moved to readers.cr   end
+# moved to readers.cr end
+# moved to readers.cr

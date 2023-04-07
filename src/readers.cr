@@ -12,11 +12,7 @@ module Ole
     #
     # returns the entire contents of a chain starting at the given sector
     #
-    # old code private def read_directories(sector : UInt32)
-    #
-    private def read_directories(sector : UInt32)
-
-      # old code sector = @header.first_dir_sector
+    def read_directories(sector : UInt32)
 
       #
       # keep a list of sectors we've already read
@@ -39,11 +35,7 @@ module Ole
 
         next_sector = @fat[sector]
         if h.has_key?(next_sector)
-          #
-          # error, already read this sector
-          #
-          @errors << "ole warning: already read sector #{sector}"
-          @status = -1
+          set_error("already read sector #{sector}")
           break
         end
 
@@ -62,7 +54,48 @@ module Ole
       @root = @directories[0]
     end
 
-    #private
+
+    #
+    # Read the FAT table
+    #
+    def read_fat()
+
+      @header.difat.each do |sector|
+        if sector == Ole::ENDOFCHAIN
+          break
+        end
+
+        if sector == Ole::FREESECT
+          break
+        end
+
+        read_fat_sector(sector.to_u32)
+      end
+    end
+
+    #
+    # first convert the raw data into decoded sector indices
+    # the raw data contains Little Endian encoded sector indices
+    # 4 bytes long
+    #
+    def read_fat_sector(sector : UInt32)
+
+      bytes = read_sector(sector)
+      if bytes.size != @header.sector_size
+        #raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        #@errors << "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        #@status = -1
+        set_error("broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
+        return
+      end
+
+      (0...bytes.size - 1).step(4) do |x|
+        arr    = bytes[x..x+3]
+        sector = ::Ole.endian_u32(arr,@header.byte_order)
+        @fat << sector
+      end
+    end
+
     def read_minifat_chain(sector : UInt32)
 
       #
@@ -71,48 +104,61 @@ module Ole
       h = Hash(UInt32,UInt32).new
       h[sector] = sector
 
-      # old code puts "minifat chain for sector #{sector}"
-
       next_sector = Ole::ENDOFCHAIN
       while true
 
         if sector == Ole::ENDOFCHAIN
-          # old code puts "sector is end of chain"
           break
         end
 
-        data = read_sector(sector)
-        # old code puts "sector #{sector} data size #{data.size}"
-
+        data            = read_sector(sector)
         minifat_entries = read_minifat(data)
         minifat_entries.each do |e|
           @minifat << e
         end
 
         next_sector = @fat[sector]
-        # old code puts "next sector is #{next_sector}"
         if h.has_key?(next_sector)
-          #
-          # error, already read this sector
-          #
-          @errors << "ole warning: already read sector #{sector}"
-          @status = -1
+          set_error("already read sector #{sector}")
           break
         end
 
         h[next_sector] = next_sector
         sector = next_sector
       end
-
     end
 
-    # old code def read_mini_chain(sector : UInt32)
-    # old code   return _read_minifat_chain()
-    # old code end
+    def read_minifat_stream(sector : UInt32)
 
-    # old code def read_chain(sector : UInt32)
-    # old code   return _read_chain(sector)
-    # old code end
+      #
+      # keep a list of sectors we've already read
+      #
+      h = Hash(UInt32,UInt32).new
+      h[sector] = sector
+
+      next_sector = Ole::ENDOFCHAIN
+      while true
+
+        if sector == Ole::ENDOFCHAIN
+          break
+        end
+
+        data        = read_sector(sector)
+        @ministream = read_ministream(data)
+        # unsure about this code ?? ministream_entries.each do |e|
+        # unsure about this code ??   @ministream = @ministream + e
+        # unsure about this code ?? end
+
+        next_sector = @fat[sector]
+        if h.has_key?(next_sector)
+          set_error("already read sector #{sector}")
+          break
+        end
+
+        h[next_sector] = next_sector
+        sector = next_sector
+      end
+    end
 
     def read_sector(index : UInt32) : Bytes
       x    = sector_size()
@@ -121,11 +167,55 @@ module Ole
       @data[spos..epos - 1]
     end
 
-    # old code def read_mini_sector(index : UInt32) : Bytes
-    # old code   x    = mini_sector_size()
-    # old code   spos = x * ( index + 1 )
-    # old code   epos = spos + x
-    # old code   @data[spos..epos - 1]
-    # old code end
+    #
+    # Read the Ministream
+    #
+    def read_ministream(bytes : Bytes) : Bytes
+
+      x = bytes.dup
+      # unsure about this code ?? if x.size < @directories[0].size
+      # unsure about this code ??   set_error("specified size is larger than actual stream length #{bytes.size}")
+      # unsure about this code ??   return x
+      # unsure about this code ?? end
+      #x = bytes[0..@directories[0].size]
+
+      #s = ::Ole.to_raw(x,@byte_order)
+      #s = ::Ole.le_string(x,x.size).to_s()
+      return x
+    end
+
+    #
+    # Read the Mini FAT table
+    #
+    def read_minifat(sector : UInt32)
+      #
+      # Start at sector @header.first_mini_fat_pos
+      # take into account the header offset
+      #
+      # so for sector 2 we need to go to
+      #
+      # offset = (sector + 1) * sector_size()
+      #        = 3 * 512 = 1536
+      #
+      read_minifat_chain(sector)
+    end
+
+    def read_minifat(bytes : Bytes) : Array(UInt32)
+      ids = [] of UInt32
+
+      # old code if bytes.size != @header.mini_sector_size()
+      if bytes.size != @header.sector_size()
+        set_error("broken mini FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
+        return ids
+      end
+
+      (0...bytes.size - 1).step(4) do |x|
+        arr    = bytes[x..x+3]
+        sector = ::Ole.endian_u32(arr,@header.byte_order)
+        ids << sector
+      end
+
+      return ids
+    end
   end
 end

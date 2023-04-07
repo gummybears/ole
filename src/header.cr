@@ -41,6 +41,7 @@ module Ole
     # property difat                : Bytes = Bytes.new(436)     # 436 bytes    from 76, first 109 = (436/4) FAT sector locations
     #
     property errors               : Array(String) = [] of String
+    property status               : Int32 = 0
     property error                : String = ""
     property data                 : Bytes
 
@@ -272,17 +273,25 @@ module Ole
         when 4
           r = 1024
         else
-          @errors << "invalid Ole structure"
+          #@errors << "invalid Ole structure"
+
+          set_error("invalid Ole structure")
           r = 0
       end
 
       r
     end
 
+    def set_error(s : String)
+      @errors << "ole error : #{s}"
+      @status = -1
+    end
+
     def validate_magic
       r = (::Ole.to_hex(_magic) == "0xd0cf11e0a1b11ae1")
       if r == false
-        @errors << "invalid Ole header signature"
+        #@errors << "invalid Ole header signature"
+        set_error("invalid Ole header signature")
       end
       r
     end
@@ -290,7 +299,8 @@ module Ole
     def validate_clsid
       r = (::Ole.to_hex(_clsid) == "0x0000000000000000")
       if r == false
-        @errors << "invalid Ole class id"
+        #@errors << "invalid Ole class id"
+        set_error("invalid Ole class id")
       end
       r
     end
@@ -298,7 +308,8 @@ module Ole
     def validate_byteorder
       r = (::Ole.to_hex(_byte_order) == "0xfeff")
       if r == false
-        @errors << "invalid Ole byte order"
+        #@errors << "invalid Ole byte order"
+        set_error("invalid Ole byte order")
       end
       r
     end
@@ -368,7 +379,8 @@ module Ole
           validate_reserved
 
       if x == false
-        @error = "not a valid Ole structure storage file"
+        #@error = "not a valid Ole structure storage file"
+        set_error("not a valid Ole structure storage file")
       end
 
       return x

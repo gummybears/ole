@@ -16,10 +16,10 @@ describe "Ole::DirectoryEntry" do
   end
 
   it "self.size" do
-    # change instance method into class method : sid  = 0u32
-    # change instance method into class method : data = direntry()
-    # change instance method into class method : direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    # change instance method into class method : direntry.size.should eq 128
+    # old code change instance method into class method : sid  = 0u32
+    # old code change instance method into class method : data = direntry()
+    # old code change instance method into class method : direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
+    # old code change instance method into class method : direntry.size.should eq 128
     Ole::DirectoryEntry.size.should eq 128
   end
 
@@ -100,18 +100,24 @@ describe "Ole::DirectoryEntry" do
     direntry.start_sector.should eq 4294967294
   end
 
-  it "size_min" do
-    sid  = 0u32
+  # old code it "size_min" do
+  # old code   sid  = 0u32
+  # old code   data = direntry()
+  # old code   direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
+  # old code   direntry.size_min.should eq 0
+  # old code end
+  # old code
+  # old code it "size_max" do
+  # old code   sid  = 0u32
+  # old code   data = direntry()
+  # old code   direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
+  # old code   direntry.size_max.should eq 0
+  # old code end
+
+  it "size" do
+    sid  = 0u64
     data = direntry()
     direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    direntry.size_min.should eq 0
+    direntry.size.should eq 0
   end
-
-  it "size_max" do
-    sid  = 0u32
-    data = direntry()
-    direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    direntry.size_max.should eq 0
-  end
-
 end
