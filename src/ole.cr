@@ -11,7 +11,7 @@ require "./constants.cr"
 require "./convert_string.cr"
 require "./convert_datetime.cr"
 # old code require "./stream.cr"
-require "./metadata.cr"
+# old code require "./metadata.cr"
 require "./direntry.cr"
 
 require "./dump.cr"
@@ -45,8 +45,8 @@ module Ole
 
     include Dump
     include Directory
-    # include Fat
-    # include MiniFat
+    # old code include Fat
+    # old code include MiniFat
     include Readers
 
     def initialize(filename : String, mode : String)
@@ -65,8 +65,13 @@ module Ole
       @ministream = Bytes.new(0)
       @io.read_fully(@data)
 
-      @header          = Header.new(@data)
-      @byte_order      = @header.determine_byteorder
+      @header = Header.new(@data)
+      @header.errors.each do |err|
+        @errors << err
+      end
+      @status = @header.status
+
+      @byte_order = @header.determine_byteorder
 
       if is_valid? == false
         return
@@ -77,7 +82,8 @@ module Ole
 
       if @directories[0].start_sector != Ole::ENDOFCHAIN
         read_minifat_stream(@directories[0].start_sector)
-        read_minifat(@header.first_mini_fat_pos)
+        # old code read_minifat(@header.first_mini_fat_pos)
+        read_minifat_chain(@header.first_mini_fat_pos)
       end
 
       file.close
@@ -86,6 +92,11 @@ module Ole
     def set_error(s : String)
       @errors << "ole error : #{s}"
       @status = -1
+    end
+
+    def set_warning(s : String)
+      @errors << "ole warning : #{s}"
+      # @status = 0
     end
 
     def get_header() : Header
@@ -110,7 +121,6 @@ module Ole
     # def minifat_sector_size() : Int32
     #   @header.minifat_sector_size
     # end
-
 
     def filesize() : Int64
       @size

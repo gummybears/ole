@@ -39,5 +39,9 @@ module Ole
     def get_root_entry() : Ole::DirectoryEntry
       @root
     end
+
+    def set_root()
+      @root = @directories[0]
+    end
   end
 end

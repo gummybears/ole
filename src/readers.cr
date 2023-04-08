@@ -27,7 +27,12 @@ module Ole
           break
         end
 
-        data        = read_sector(sector)
+        data = read_sector(sector)
+        if data.size == 0
+          set_error("no data found in chain for sector #{sector}")
+          break
+        end
+
         dir_entries = directory_entries(data)
         dir_entries.each do |dir|
           @directories << dir
@@ -49,11 +54,6 @@ module Ole
       set_root()
 
     end
-
-    def set_root()
-      @root = @directories[0]
-    end
-
 
     #
     # Read the FAT table
@@ -82,9 +82,9 @@ module Ole
 
       bytes = read_sector(sector)
       if bytes.size != @header.sector_size
-        #raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
-        #@errors << "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
-        #@status = -1
+        # old code raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        # old code @errors << "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
+        # old code @status = -1
         set_error("broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
         return
       end
@@ -111,7 +111,17 @@ module Ole
           break
         end
 
-        data            = read_sector(sector)
+        data = read_sector(sector)
+        if data.size == 0
+          set_error("no data found in chain for sector #{sector}")
+          break
+        end
+
+        if data.size != sector_size()
+          set_warning("encountered EOF while parsing minifat")
+          next
+        end
+
         minifat_entries = read_minifat(data)
         minifat_entries.each do |e|
           @minifat << e
@@ -143,7 +153,12 @@ module Ole
           break
         end
 
-        data        = read_sector(sector)
+        data = read_sector(sector)
+        if data.size == 0
+          set_error("no data found in minifat stream for sector #{sector}")
+          break
+        end
+
         @ministream = read_ministream(data)
         # unsure about this code ?? ministream_entries.each do |e|
         # unsure about this code ??   @ministream = @ministream + e
@@ -184,21 +199,21 @@ module Ole
       return x
     end
 
-    #
-    # Read the Mini FAT table
-    #
-    def read_minifat(sector : UInt32)
-      #
-      # Start at sector @header.first_mini_fat_pos
-      # take into account the header offset
-      #
-      # so for sector 2 we need to go to
-      #
-      # offset = (sector + 1) * sector_size()
-      #        = 3 * 512 = 1536
-      #
-      read_minifat_chain(sector)
-    end
+    # old code #
+    # old code # Read the Mini FAT table
+    # old code #
+    # old code def read_minifat(sector : UInt32)
+    # old code   #
+    # old code   # Start at sector @header.first_mini_fat_pos
+    # old code   # take into account the header offset
+    # old code   #
+    # old code   # so for sector 2 we need to go to
+    # old code   #
+    # old code   # offset = (sector + 1) * sector_size()
+    # old code   #        = 3 * 512 = 1536
+    # old code   #
+    # old code   read_minifat_chain(sector)
+    # old code end
 
     def read_minifat(bytes : Bytes) : Array(UInt32)
       ids = [] of UInt32
