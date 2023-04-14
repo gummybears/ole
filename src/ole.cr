@@ -10,14 +10,10 @@ require "./helper.cr"
 require "./constants.cr"
 require "./convert_string.cr"
 require "./convert_datetime.cr"
-# old code require "./stream.cr"
-# old code require "./metadata.cr"
 require "./direntry.cr"
 
 require "./dump.cr"
 require "./directory.cr"
-# old code require "./fat.cr"
-# old code require "./minifat.cr"
 require "./readers.cr"
 
 #
@@ -45,8 +41,6 @@ module Ole
 
     include Dump
     include Directory
-    # old code include Fat
-    # old code include MiniFat
     include Readers
 
     def initialize(filename : String, mode : String)
@@ -82,7 +76,6 @@ module Ole
 
       if @directories[0].start_sector != Ole::ENDOFCHAIN
         read_minifat_stream(@directories[0].start_sector)
-        # old code read_minifat(@header.first_mini_fat_pos)
         read_minifat_chain(@header.first_mini_fat_pos)
       end
 
@@ -96,7 +89,7 @@ module Ole
 
     def set_warning(s : String)
       @errors << "ole warning : #{s}"
-      # @status = 0
+      @status = -2
     end
 
     def get_header() : Header

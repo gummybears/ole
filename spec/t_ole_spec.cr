@@ -181,15 +181,72 @@ describe "Ole::FileIO" do
     end
   end
 
-  # old code pending "max_dir_entries" do
-  # old code   it "doc" do
-  # old code     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-  # old code     ole.max_dir_entries.should eq 8
-  # old code   end
-  # old code
-  # old code   it "excel" do
-  # old code     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-  # old code     ole.max_dir_entries.should eq 8
-  # old code   end
-  # old code end
+  describe "dump_directories" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      #ole.dump_directories.should eq "x"
+      ole.status.should eq 0
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      #ole.dump_directories.should eq "x"
+      ole.status.should eq 0
+    end
+  end
+
+  describe "dump_fat" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.status.should eq 0
+      #ole.dump_fat.should eq "x"
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+      ole.dump_fat.should eq "x"
+    end
+  end
+
+  describe "dump_difat" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.status.should eq 0
+      ole.dump_difat.should eq "x"
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+      ole.dump_difat.should eq "x"
+    end
+  end
+
+  describe "dump_minifat" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.status.should eq 0
+      ole.dump_minifat.should eq "x"
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+      ole.dump_minifat.should eq "x"
+    end
+  end
+
+  describe "dump_ministreams" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.dump_ministreams.should eq "x"
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.dump_ministreams.should eq "x"
+    end
+  end
+
 end

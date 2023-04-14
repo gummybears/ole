@@ -36,26 +36,24 @@ module Ole
     property left_sid     : UInt32 = 0   #   4    68,  72,  4
     property right_sid    : UInt32 = 0   #   4    72,  76,  4
     property child_sid    : UInt32 = 0   #   4    76,  80,  4
-    property clsid        : String = ""  #  16    80,  96, 16
+    property clsid        : Bytes  = Bytes.new(0) # #String = ""  #  16    80,  96, 16
     property user_flags   : UInt32 = 0   #   4    96, 100,  4
     property ctime        : Time = Time.local # UInt64 = 0   #   8   100, 108,  8
     property mtime        : Time = Time.local # UInt64 = 0   #   8   108, 116,  8
     property start_sector : UInt32 = 0   #   4   116, 120,  4
-    # old code property size_min     : UInt32 = 0   #   4   120, 124,  4
-    # old code property size_max     : UInt32 = 0   #   4   124, 128,  4
-    property size         : UInt64 = 0
+    property size         : UInt64 = 0   #   8,  120, 128, 8
+
     property errors       : Array(String) = [] of String
     property error        : String = ""
     property data         : Bytes  = Bytes[0]
-    # property size         : UInt32 = 0
+
 
     # dummy initializer
     def initialize
     end
 
     def initialize(data : Bytes,byte_order : Ole::ByteOrder)
-      @data        = data
-
+      @data       = data
       #
       # minus 2 as to NOT include the 2 bytes
       # marking the end of the string
@@ -68,12 +66,10 @@ module Ole
       @name = "empty"
       if @size_name > 2
         @name = ::Ole.le_string(_name(),@size_name-2).to_s()
-      # old code else
-      # old code   @name = "empty"
       end
+
       @type         = ::Ole.endian_u8(_type(),byte_order)
       @color        = ::Ole.endian_u8(_color(),byte_order)
-
       @left_sid     = ::Ole.endian_u32(_left_sid(),byte_order)
       @right_sid    = ::Ole.endian_u32(_right_sid(),byte_order)
       @child_sid    = ::Ole.endian_u32(_child_sid(),byte_order)
@@ -82,16 +78,13 @@ module Ole
       # size of clsid is 16, but need to remove last 2 bytes from _clsid as these are null bytes
       # to indicate end of UTF16 string
       #
-
-      @clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
+      #@clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
+      @clsid        = _clsid()
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
       @ctime        = ::Ole.le_datetime(_ctime())
       @mtime        = ::Ole.le_datetime(_mtime())
-
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
       @size         = ::Ole.endian_u64(_size(),byte_order)
-      # old code @size_min     = ::Ole.endian_u32(_size_min(),byte_order)
-      # old code @size_max     = ::Ole.endian_u32(_size_max(),byte_order)
     end
 
     #
@@ -160,16 +153,69 @@ module Ole
       get_data(116,120,4)
     end
 
-    # old code private def _size_min()
-    # old code   get_data(120,124,4)
-    # old code end
-    # old code
-    # old code private def _size_max()
-    # old code   get_data(124,128,4)
-    # old code end
-
     private def _size()
       get_data(120,128,8)
+    end
+
+    def dump(join : String = "\n") : String
+      s = [] of String
+
+      start_time = Time.utc(1601,1,1,0,0,0)
+
+      s << "Name          #{@name}"
+
+      t = ""
+      case @type
+        when 0
+          t = "empty"
+        when 1
+          t = "Storage"
+        when 2
+          t = "Stream"
+        when 3
+          t = "LockBytes"
+        when 4
+          t = "Property"
+        when 5
+          t = "Root"
+        else
+          t = "Invalid"
+      end
+
+      s << "Type          #{t}"
+
+      c = ""
+      case @color
+        when 0
+          c = "Red"
+        when 1
+          c = "Black"
+        else
+          c = "Invalid"
+      end
+
+      s << "Color         #{c}"
+      s << "Left          0x#{@left_sid.to_s(16).upcase}"
+      s << "Right         0x#{@right_sid.to_s(16).upcase}"
+      s << "Child         0x#{@child_sid.to_s(16).upcase}"
+
+      x = bytes_to_hex(@clsid)
+      s << "Class id      #{x}"
+
+      s << "User flags    0x#{@user_flags.to_s(16)}"
+      s << "Creation time #{@ctime - start_time}"
+      s << "Modified time #{@mtime - start_time}"
+      s << "Sector        0x#{@start_sector.to_s(16).upcase}"
+      s << "Size          #{@size}"
+      return s.join(join)
+    end
+
+    def bytes_to_hex(b : Bytes) : String
+      x = ""
+      b.each do |e|
+        x = x + sprintf("%0.2x",e).upcase + " "
+      end
+      x
     end
 
   end

@@ -82,9 +82,6 @@ module Ole
 
       bytes = read_sector(sector)
       if bytes.size != @header.sector_size
-        # old code raise "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
-        # old code @errors << "broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}"
-        # old code @status = -1
         set_error("broken FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
         return
       end
@@ -160,9 +157,6 @@ module Ole
         end
 
         @ministream = read_ministream(data)
-        # unsure about this code ?? ministream_entries.each do |e|
-        # unsure about this code ??   @ministream = @ministream + e
-        # unsure about this code ?? end
 
         next_sector = @fat[sector]
         if h.has_key?(next_sector)
@@ -186,39 +180,13 @@ module Ole
     # Read the Ministream
     #
     def read_ministream(bytes : Bytes) : Bytes
-
       x = bytes.dup
-      # unsure about this code ?? if x.size < @directories[0].size
-      # unsure about this code ??   set_error("specified size is larger than actual stream length #{bytes.size}")
-      # unsure about this code ??   return x
-      # unsure about this code ?? end
-      #x = bytes[0..@directories[0].size]
-
-      #s = ::Ole.to_raw(x,@byte_order)
-      #s = ::Ole.le_string(x,x.size).to_s()
       return x
     end
-
-    # old code #
-    # old code # Read the Mini FAT table
-    # old code #
-    # old code def read_minifat(sector : UInt32)
-    # old code   #
-    # old code   # Start at sector @header.first_mini_fat_pos
-    # old code   # take into account the header offset
-    # old code   #
-    # old code   # so for sector 2 we need to go to
-    # old code   #
-    # old code   # offset = (sector + 1) * sector_size()
-    # old code   #        = 3 * 512 = 1536
-    # old code   #
-    # old code   read_minifat_chain(sector)
-    # old code end
 
     def read_minifat(bytes : Bytes) : Array(UInt32)
       ids = [] of UInt32
 
-      # old code if bytes.size != @header.mini_sector_size()
       if bytes.size != @header.sector_size()
         set_error("broken mini FAT, sector size is #{bytes.size} but should be #{@header.sector_size}")
         return ids
