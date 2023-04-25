@@ -290,7 +290,6 @@ module Ole
     def validate_magic
       r = (::Ole.to_hex(_magic) == "0xd0cf11e0a1b11ae1")
       if r == false
-        #@errors << "invalid Ole header signature"
         set_error("invalid Ole header signature")
       end
       r
@@ -299,7 +298,6 @@ module Ole
     def validate_clsid
       r = (::Ole.to_hex(_clsid) == "0x0000000000000000")
       if r == false
-        #@errors << "invalid Ole class id"
         set_error("invalid Ole class id")
       end
       r
@@ -308,7 +306,6 @@ module Ole
     def validate_byteorder
       r = (::Ole.to_hex(_byte_order) == "0xfeff")
       if r == false
-        #@errors << "invalid Ole byte order"
         set_error("invalid Ole byte order")
       end
       r
@@ -379,7 +376,6 @@ module Ole
           validate_reserved
 
       if x == false
-        #@error = "not a valid Ole structure storage file"
         set_error("not a valid Ole structure storage file")
       end
 

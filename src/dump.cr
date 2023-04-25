@@ -9,66 +9,31 @@ module Ole
 
   module Dump
 
-    # old code #
-    # old code # Dump FAT (for debugging only)
-    # old code #
-    # old code def dump_fat
-    # old code
-    # old code   puts
-    # old code   puts "FAT (max nr sectors #{max_nr_sectors})"
-    # old code   puts
-    # old code
-    # old code   x = @header.nr_fat_sectors
-    # old code   if x == 0
-    # old code     return
-    # old code   end
-    # old code
-    # old code   startpos      = @header.sector_size
-    # old code   nr_fat_fields = @header.nr_fat_fields
-    # old code
-    # old code   #
-    # old code   # read 4 bytes at a time
-    # old code   #
-    # old code   spos = startpos
-    # old code   epos = startpos + nr_fat_fields
-    # old code   (spos..epos).step(4).each do |i|
-    # old code     spos = i
-    # old code     epos = spos + 4 - 1
-    # old code
-    # old code     d = @data[spos..epos]
-    # old code     v = ::Ole.to_hex(d,@byte_order,true)
-    # old code
-    # old code     x = sprintf("%0.4x",i).upcase
-    # old code
-    # old code     case v
-    # old code       when "0xfffffffd"
-    # old code         #puts "0x#{i.to_s(16)} : fat sector"
-    # old code         puts "0x#{x} : fat sector"
-    # old code
-    # old code       when "0xfffffffe"
-    # old code         #puts "0x#{i.to_s(16)} : end of chain"
-    # old code         puts "0x#{x} : end of chain"
-    # old code
-    # old code       when "0xffffffff"
-    # old code         #puts "0x#{i.to_s(16)} : free sector"
-    # old code         puts "0x#{x} : free sector"
-    # old code
-    # old code       else
-    # old code         #puts "0x#{i.to_s(16)} : #{v.upcase}"
-    # old code         puts "0x#{x} : #{v.upcase}"
-    # old code
-    # old code     end
-    # old code
-    # old code   end
-    # old code end
+    def print_fat_header()
+      puts
+      puts "FAT (max nr sectors #{max_nr_sectors})"
+      puts
+    end
+
+    def print_minifat_header()
+      puts
+      puts "Mini FAT"
+      puts
+    end
+
+
+    def print_difat_header()
+      puts
+      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)"
+      puts
+    end
 
     #
     # Dump FAT (for debugging only)
     #
     def dump_fat
-      puts
-      puts "FAT (max nr sectors #{max_nr_sectors})"
-      puts
+
+      print_fat_header()
 
       i = 0
       @fat.each do |e|
@@ -100,23 +65,12 @@ module Ole
     #
     def dump_difat
 
-      puts
-      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)"
-      puts
+      if @header.nr_dfat_sectors == 0
+        puts "No DIFAT sectors found"
+        return
+      end
 
-      # old code #
-      # old code # process header difat array
-      # old code #
-      # old code difat_pos      = 76
-      # old code difat_nr_bytes = 4
-      # old code (0..@header.difat.size - 1).each do |i|
-      # old code
-      # old code   d = @header.difat[i]
-      # old code
-      # old code   a = sprintf("0x%0.3x",i * difat_nr_bytes + difat_pos)
-      # old code   v = sprintf("0x%0.8x",d)
-      # old code   puts "#{a} : #{v}"
-      # old code end
+      print_difat_header()
 
       i = 0
       @header.difat.each do |e|
@@ -145,18 +99,12 @@ module Ole
     end
 
     #
-    # Dump sector (for debugging only)
-    #
-    def dump_sector(sector : Int32, first_index : Int32 = 0)
-    end
-
-    #
     # dump some header information
     # debug purposes
     #
-    def dump
+    def dump()
       puts
-      puts "dump of file #{@filename}"
+      puts "dump of file '#{@filename}'"
       puts
       @header.dump()
       dump_difat()
@@ -166,7 +114,7 @@ module Ole
     #
     # Dump directories (for debugging only)
     #
-    def dump_directories
+    def dump_directories()
       @directories.each do |e|
         puts e.dump
         puts
@@ -176,10 +124,9 @@ module Ole
     #
     # Dump minifat
     #
-    def dump_minifat
-      puts
-      puts "Mini FAT"
-      puts
+    def dump_minifat()
+
+      print_minifat_header()
 
       i = 0
       @minifat.each do |e|
@@ -212,11 +159,50 @@ module Ole
     def dump_ministreams
       i = 0
       @directories.each do |e|
-        if e.name != "empty"
+        if e.name != ""
           puts "#{i} : #{e.name}"
           i =  i + 1
         end
       end
     end
+
+    #
+    # Dump stream by name
+    #
+    def dump_stream(name : String)
+
+      #
+      # convert name to UTF-16 Big Endian
+      #
+      x   = name.encode("UTF-16BE")
+      len = x.size
+
+      @directories.each do |e|
+        if e.name == ""
+          next
+        end
+
+        #
+        # need to trim the directory name to (len - 1)
+        # to do comparison
+        #
+        name_utf16 = e.name.to_utf16[0..len-1]
+
+        if name_utf16 == x
+          data = read_sector(e.start_sector)
+          #if data.size > 0
+          return data
+          #end
+        end
+      end
+    end
+
+    #
+    # Dump sector (for debugging only)
+    #
+    def dump_sector(sector : UInt32)
+      read_sector(sector)
+    end
+
   end
 end

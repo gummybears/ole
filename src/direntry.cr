@@ -29,24 +29,23 @@ module Ole
     # size_max        : uint32, total stream size in bytes if stream (high 32 bits), 0 otherwise
     #
 
-    property name         : String = ""  #  64     0,  64, 64
-    property size_name    : UInt16 = 0   #   2    64,  66,  2
-    property type         : UInt8  = 0   #   1    66,  67,  1
-    property color        : UInt8  = 0   #   1    67,  68,  1
-    property left_sid     : UInt32 = 0   #   4    68,  72,  4
-    property right_sid    : UInt32 = 0   #   4    72,  76,  4
-    property child_sid    : UInt32 = 0   #   4    76,  80,  4
-    property clsid        : Bytes  = Bytes.new(0) # #String = ""  #  16    80,  96, 16
-    property user_flags   : UInt32 = 0   #   4    96, 100,  4
-    property ctime        : Time = Time.local # UInt64 = 0   #   8   100, 108,  8
-    property mtime        : Time = Time.local # UInt64 = 0   #   8   108, 116,  8
-    property start_sector : UInt32 = 0   #   4   116, 120,  4
-    property size         : UInt64 = 0   #   8,  120, 128, 8
+    property name         : String = ""           #  64     0,  64, 64
+    property size_name    : UInt16 = 0            #   2    64,  66,  2
+    property type         : UInt8  = 0            #   1    66,  67,  1
+    property color        : UInt8  = 0            #   1    67,  68,  1
+    property left_sid     : UInt32 = 0            #   4    68,  72,  4
+    property right_sid    : UInt32 = 0            #   4    72,  76,  4
+    property child_sid    : UInt32 = 0            #   4    76,  80,  4
+    property clsid        : Bytes  = Bytes.new(0) # 16    80,  96, 16
+    property user_flags   : UInt32 = 0            #   4    96, 100,  4
+    property ctime        : Time = Time.local     #   8   100, 108,  8
+    property mtime        : Time = Time.local     #   8   108, 116,  8
+    property start_sector : UInt32 = 0            #   4   116, 120,  4
+    property size         : UInt64 = 0            #   8,  120, 128, 8
 
     property errors       : Array(String) = [] of String
     property error        : String = ""
-    property data         : Bytes  = Bytes[0]
-
+    property data         : Bytes = Bytes[0]
 
     # dummy initializer
     def initialize
@@ -63,7 +62,7 @@ module Ole
       #
       # size_name could be 0
       #
-      @name = "empty"
+      @name = ""
       if @size_name > 2
         @name = ::Ole.le_string(_name(),@size_name-2).to_s()
       end
@@ -78,13 +77,13 @@ module Ole
       # size of clsid is 16, but need to remove last 2 bytes from _clsid as these are null bytes
       # to indicate end of UTF16 string
       #
-      #@clsid        = ::Ole.le_string(_clsid(),16-2).to_s()
       @clsid        = _clsid()
       @user_flags   = ::Ole.endian_u32(_user_flags(),byte_order)
       @ctime        = ::Ole.le_datetime(_ctime())
       @mtime        = ::Ole.le_datetime(_mtime())
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
       @size         = ::Ole.endian_u64(_size(),byte_order)
+
     end
 
     #
@@ -103,6 +102,10 @@ module Ole
     private def get_data(spos,epos,len)
       endpos = spos + len - 1
       @data[spos..endpos]
+    end
+
+    def name_utf16
+      _name()
     end
 
     private def _name()
