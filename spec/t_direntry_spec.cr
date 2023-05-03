@@ -65,7 +65,6 @@ describe "Ole::DirectoryEntry" do
     sid  = 0u32
     data = direntry()
     direntry = Ole::DirectoryEntry.new(data,Ole::ByteOrder::LittleEndian)
-    # old code direntry.clsid.should eq "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
     direntry.bytes_to_hex(direntry.clsid).should eq "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 "
   end
 

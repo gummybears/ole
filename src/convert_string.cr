@@ -36,18 +36,6 @@ module Ole
       if @bytes.size % 2 != 0
         @arr << 0_u16
       end
-
-      #
-      # old code if the size of the new array is less
-      # old code than the requested size
-      # old code enlarge ie pad the array utf with zero's
-      # old code
-      # old code if @arr.size < @size
-      # old code   diff = @size - @arr.size
-      # old code   (0..diff-1).each do
-      # old code     @arr << 0_u16
-      # old code   end
-      # old code end
     end
 
     def swap()
@@ -60,18 +48,6 @@ module Ole
 
       @arr = utf16.clone
     end
-
-    # old code def trim(b : Array(UInt16))
-    # old code   x = [] of UInt16
-    # old code   (0..b.size-1).step(2) do |i|
-    # old code     if b[i] != 0 && b[i+1] != 0
-    # old code       x << b[i]
-    # old code       x << b[i+1]
-    # old code     end
-    # old code   end
-    # old code
-    # old code   x
-    # old code end
 
     private def to_slice(arr)
       Slice.new(arr.size) {|i| arr[i]}
