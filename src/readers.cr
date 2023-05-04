@@ -170,9 +170,32 @@ module Ole
     end
 
     def read_sector(index : UInt32) : Bytes
-      x    = sector_size()
+      #
+      # basic checks
+      #
+      if index < 0
+        set_error("sector cannot be negative")
+        return Bytes[]
+      end
+
+      x = sector_size()
+      if x < 0
+        set_error("sector size cannot be negative")
+        return Bytes[]
+      end
+
       spos = x * ( index + 1 )
       epos = spos + x
+      if spos < 0
+        set_error("array index cannot be negative")
+        return Bytes[]
+      end
+
+      if epos > @data.size
+        set_error("array index exceeds size of array")
+        return Bytes[]
+      end
+
       @data[spos..epos - 1]
     end
 
