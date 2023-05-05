@@ -171,6 +171,40 @@ module Ole
     #
     def dump_stream(name : String)
 
+      found, data = get_stream(name)
+      puts data
+
+      # #
+      # # convert name to UTF-16 Big Endian
+      # #
+      # x   = name.encode("UTF-16BE")
+      # len = x.size
+      #
+      # @directories.each do |e|
+      #   if e.name == ""
+      #     next
+      #   end
+      #
+      #   #
+      #   # need to trim the directory name to (len - 1)
+      #   # to do comparison
+      #   #
+      #   name_utf16 = e.name.to_utf16[0..len-1]
+      #
+      #   if name_utf16 == x
+      #     data = read_sector(e.start_sector)
+      #     #if data.size > 0
+      #     return data
+      #     #end
+      #   end
+      # end
+    end
+
+    #
+    # Get stream by name
+    #
+    def get_stream(name : String) : {Bool, Bytes}
+
       #
       # convert name to UTF-16 Big Endian
       #
@@ -190,12 +224,15 @@ module Ole
 
         if name_utf16 == x
           data = read_sector(e.start_sector)
-          #if data.size > 0
-          return data
-          #end
+          if data.size > 0
+            return true, data
+          end
         end
       end
+
+      return false, Bytes.new(0)
     end
+
 
     #
     # Dump sector (for debugging only)
@@ -203,6 +240,5 @@ module Ole
     def dump_sector(sector : UInt32)
       read_sector(sector)
     end
-
   end
 end

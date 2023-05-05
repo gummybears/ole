@@ -21,7 +21,6 @@ module Ole
     property byte_order : Ole::ByteOrder = Ole::ByteOrder::None
 
     def initialize(bytes : Bytes, size : UInt32, byte_order)
-
       @bytes      = bytes
       @size       = size
       @byte_order = byte_order

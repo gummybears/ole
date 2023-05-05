@@ -165,12 +165,16 @@ module Ole
 
       start_time = Time.utc(1601,1,1,0,0,0)
 
-      s << "Name          #{@name}"
+      if @name.size > 0
+        s << "Name          #{@name}"
+      else
+        s << "Name          Empty"
+      end
 
       t = ""
       case @type
         when 0
-          t = "empty"
+          t = "Unknown"
         when 1
           t = "Storage"
         when 2
@@ -208,7 +212,7 @@ module Ole
       s << "User flags    0x#{@user_flags.to_s(16)}"
       s << "Creation time #{@ctime - start_time}"
       s << "Modified time #{@mtime - start_time}"
-      s << "Sector        0x#{@start_sector.to_s(16).upcase}"
+      s << "Sector        0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
       s << "Size          #{@size}"
       return s.join(join)
     end
