@@ -203,7 +203,7 @@ module Ole
     #
     # Get stream by name
     #
-    def get_stream(name : String) : {Bool, Bytes}
+    def get_stream(name : String) : {Bool, DirectoryEntry, Bytes}
 
       #
       # convert name to UTF-16 Big Endian
@@ -225,12 +225,12 @@ module Ole
         if name_utf16 == x
           data = read_sector(e.start_sector)
           if data.size > 0
-            return true, data
+            return true, e, data
           end
         end
       end
 
-      return false, Bytes.new(0)
+      return false, DirectoryEntry.new, Bytes.new(0)
     end
 
 

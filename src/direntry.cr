@@ -13,20 +13,19 @@ module Ole
 
     #
     # name            : string, containing entry name in unicode UTF-16 (max 31 chars) + null char = 64 bytes
-    # number of bytes : uint16, number of bytes used in name buffer, including null = (len+1)*2
+    # size of name    : uint16, number of bytes used in name buffer, including null = (len+1)*2
     # type            : uint8,  between 0 and 5
     # color           : uint8,  0 = black, 1 = red
-    # left            : uint32, index of left child node in the red-black tree, NOSTREAM if none
-    # right           : uint32, index of right child node in the red-black tree, NOSTREAM if none
-    # child           : uint32, index of child root node if it is a storage, else NOSTREAM
+    # left_sid        : uint32, index of left child node in the red-black tree, NOSTREAM if none
+    # right_sid       : uint32, index of right child node in the red-black tree, NOSTREAM if none
+    # child_sid       : uint32, index of child root node if it is a storage, else NOSTREAM
     # clsid           : string, 16 bytes, unique identifier (only used if it is a storage)
     # user_flags      : uint32, user flags
     # ctime           : uint64, creation timestamp or zero
     # mtime           : uint64, modification timestamp or zero
-    # sid             : uint32, SID of first sector if stream or ministream, SID of 1st sector
+    # start_sector    : uint32, SID of first sector if stream or ministream, SID of 1st sector
     #                           of stream containing ministreams if root entry, 0 otherwise
-    # size_min        : uint32, total stream size in bytes if stream (low 32 bits), 0 otherwise
-    # size_max        : uint32, total stream size in bytes if stream (high 32 bits), 0 otherwise
+    # size            : uint64, total stream size in bytes
     #
 
     property name         : String = ""           #  64     0,  64, 64
@@ -36,12 +35,12 @@ module Ole
     property left_sid     : UInt32 = 0            #   4    68,  72,  4
     property right_sid    : UInt32 = 0            #   4    72,  76,  4
     property child_sid    : UInt32 = 0            #   4    76,  80,  4
-    property clsid        : Bytes  = Bytes.new(0) # 16    80,  96, 16
+    property clsid        : Bytes  = Bytes.new(0) #  16    80,  96, 16
     property user_flags   : UInt32 = 0            #   4    96, 100,  4
     property ctime        : Time = Time.local     #   8   100, 108,  8
     property mtime        : Time = Time.local     #   8   108, 116,  8
     property start_sector : UInt32 = 0            #   4   116, 120,  4
-    property size         : UInt64 = 0            #   8,  120, 128, 8
+    property size         : UInt64 = 0            #   8,  120, 128,  8
 
     property errors       : Array(String) = [] of String
     property error        : String = ""
@@ -57,7 +56,7 @@ module Ole
       # minus 2 as to NOT include the 2 bytes
       # marking the end of the string
       #
-      @size_name    = ::Ole.endian_u16(_size_name(),byte_order)
+      @size_name  = ::Ole.endian_u16(_size_name(),byte_order)
 
       #
       # size_name could be 0
