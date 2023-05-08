@@ -199,6 +199,33 @@ module Ole
       @data[spos..epos - 1]
     end
 
+    def read_stream(d : DirectoryEntry) : Bytes
+
+      #
+      # basic checks
+      #
+      if d.start_sector < 0
+        set_error("sector cannot be negative")
+        return Bytes[]
+      end
+
+      x    = sector_size()
+      spos = x * ( d.start_sector + 1 )
+      epos = spos + d.size
+
+      if spos < 0
+        set_error("array index cannot be negative")
+        return Bytes[]
+      end
+
+      if epos > @data.size
+        set_error("array index exceeds size of array")
+        return Bytes[]
+      end
+
+      @data[spos..epos - 1]
+    end
+
     #
     # Read the Ministream
     #

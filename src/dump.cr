@@ -169,34 +169,8 @@ module Ole
     # Dump stream by name
     #
     def dump_stream(name : String)
-
       found, data = get_stream(name)
       puts data
-
-      # old code #
-      # old code # convert name to UTF-16 Big Endian
-      # old code #
-      # old code x   = name.encode("UTF-16BE")
-      # old code len = x.size
-      # old code
-      # old code @directories.each do |e|
-      # old code   if e.name == ""
-      # old code     next
-      # old code   end
-      # old code
-      # old code   #
-      # old code   # need to trim the directory name to (len - 1)
-      # old code   # to do comparison
-      # old code   #
-      # old code   name_utf16 = e.name.to_utf16[0..len-1]
-      # old code
-      # old code   if name_utf16 == x
-      # old code     data = read_sector(e.start_sector)
-      # old code     #if data.size > 0
-      # old code     return data
-      # old code     #end
-      # old code   end
-      # old code end
     end
 
     #
@@ -222,7 +196,8 @@ module Ole
         name_utf16 = e.name.to_utf16[0..len-1]
 
         if name_utf16 == x
-          data = read_sector(e.start_sector)
+          # old code data = read_sector(e.start_sector)
+          data = read_stream(e)
           if data.size > 0
             return true, e, data
           end
