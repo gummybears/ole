@@ -4,6 +4,7 @@
 # author : W.F.F. Neimeijer
 # copyright 2007-2023, ICUBIC
 #
+require "colorize"
 
 require "./header.cr"
 require "./helper.cr"
@@ -75,8 +76,8 @@ module Ole
       read_directories(@header.first_dir_sector)
 
       if @directories[0].start_sector != Ole::ENDOFCHAIN
-        read_minifat_stream(@directories[0].start_sector)
-        read_minifat_chain(@header.first_mini_fat_pos)
+        # TODO read_minifat_stream(@directories[0].start_sector)
+        read_minifat_chain(@header.first_minifat_sector)
       end
 
       file.close

@@ -34,7 +34,7 @@ module Ole
     # property first_dir_sector     : Bytes = Bytes.new(4)       #   4 bytes    48
     # property trans_sig_number     : Bytes = Bytes.new(4)       #   4 bytes    52
     # property mini_stream_cutoff   : Bytes = Bytes.new(4)       #   4 bytes    56
-    # property first_mini_fat_loc   : Bytes = Bytes.new(4)       #   4 bytes    60
+    # property first_minifat_sector : Bytes = Bytes.new(4)       #   4 bytes    60
     # property nr_mini_fat_sectors  : Bytes = Bytes.new(4)       #   4 bytes    64
     # property first_difat_loc      : Bytes = Bytes.new(4)       #   4 bytes    68
     # property nr_dfat_sectors      : Bytes = Bytes.new(4)       #   4 bytes    72
@@ -58,7 +58,7 @@ module Ole
     property first_dir_sector     : UInt32 = 0
     property trans_sig_number     : UInt32 = 0
     property mini_stream_cutoff   : UInt32 = 0
-    property first_mini_fat_pos   : UInt32 = 0
+    property first_minifat_sector : UInt32 = 0
     property nr_mini_fat_sectors  : UInt32 = 0
     property first_difat_pos      : UInt32 = 0
     property nr_dfat_sectors      : UInt32 = 0
@@ -80,31 +80,34 @@ module Ole
         spos = epos + 1
       end
 
-      @magic                = ::Ole.to_raw(_magic(),@byte_order)
-      @clsid                = ::Ole.to_raw(_clsid(),@byte_order)
+      # old code @magic                = ::Ole.to_raw(_magic(),@byte_order)
+      # old code @clsid                = ::Ole.to_raw(_clsid(),@byte_order)
+      @magic                = ::Ole.to_hex(_magic(),@byte_order,"")
+      @clsid                = ::Ole.to_hex(_clsid(),@byte_order,"")
       @minor_version        = ::Ole.endian_u16(_minor_version(),@byte_order)
       @major_version        = ::Ole.endian_u16(_major_version(),@byte_order)
       @sector_shift         = ::Ole.endian_u16(_sector_shift(),@byte_order)
       @mini_sector_shift    = ::Ole.endian_u16(_mini_sector_shift(),@byte_order)
-      @reserved             = ::Ole.to_raw(_reserved(),@byte_order)
+      # old code @reserved             = ::Ole.to_raw(_reserved(),@byte_order)
+      @reserved             = ::Ole.to_hex(_reserved(),@byte_order,"")
       @nr_dir_sectors       = ::Ole.endian_u32(_nr_dir_sectors(),@byte_order)
       @nr_fat_sectors       = ::Ole.endian_u32(_nr_fat_sectors(),@byte_order)
       @first_dir_sector     = ::Ole.endian_u32(_first_dir_sector_pos(),@byte_order)
       @trans_sig_number     = ::Ole.endian_u32(_trans_sig_number(),@byte_order)
       @mini_stream_cutoff   = ::Ole.endian_u32(_mini_stream_cutoff(),@byte_order)
-      @first_mini_fat_pos   = ::Ole.endian_u32(_first_mini_fat_pos(),@byte_order)
+      @first_minifat_sector = ::Ole.endian_u32(_first_mini_fat_pos(),@byte_order)
       @nr_mini_fat_sectors  = ::Ole.endian_u32(_nr_mini_fat_sectors(),@byte_order)
       @first_difat_pos      = ::Ole.endian_u32(_first_difat_pos(),@byte_order)
       @nr_dfat_sectors      = ::Ole.endian_u32(_nr_dfat_sectors(),@byte_order)
     end
 
+    #
+    # Note: epos is not used
+    # however I decided to leave it as a parameter
+    # more esthetic. Also could be used as
+    # internal check
+    #
     private def get_data(spos,epos,len)
-      #
-      # Note: epos is not used
-      # however I decided to leave it as a parameter
-      # more esthetic. Also could be used as
-      # internal check
-      #
       endpos = spos + len - 1
       @data[spos..endpos]
     end
@@ -125,35 +128,37 @@ module Ole
     end
 
     def dump()
-      puts "magic                #{@magic}"
-      puts "clsid                #{@clsid}"
-      puts "minor_version        #{@minor_version}"
-      puts "major_version        #{@major_version}"
+      # old code puts "magic                #{@magic}"
+      puts "Magic                 #{::Ole.to_hex(_magic)}"
+      puts "Clsid                 #{@clsid}"
+      puts "Minor version         0x#{@minor_version.to_s(16)}"
+      puts "Major version         0x#{@major_version.to_s(16)}"
 
       case @byte_order
         when Ole::ByteOrder::LittleEndian
-          puts "byte_order           LittleEndian"
+          puts "Byte order            Little Endian"
 
         when Ole::ByteOrder::BigEndian
-          puts "byte_order           BigEndian"
+          puts "Byte order            Big Endian"
 
         else
-          puts "byte_order           None"
+          puts "Byte order            None"
       end
 
-      puts "sector_shift         #{@sector_shift}"
-      puts "sector_size          #{sector_size()}"
-      puts "mini_sector_shift    #{@mini_sector_shift}"
-      puts "reserved             #{@reserved}"
-      puts "first_dir_sector     #{@first_dir_sector}"
-      puts "trans_sig_number     #{@trans_sig_number}"
-      puts "mini_stream_cutoff   #{@mini_stream_cutoff}"
-      puts "first_mini_fat_pos   #{@first_mini_fat_pos}"
-      puts "first_difat_pos      #{@first_difat_pos}"
-      puts "nr_dir_sectors       #{@nr_dir_sectors}"
-      puts "nr_fat_sectors       #{@nr_fat_sectors}"
-      puts "nr_mini_fat_sectors  #{@nr_mini_fat_sectors}"
-      puts "nr_dfat_sectors      #{@nr_dfat_sectors}"
+      puts "Sector shift          #{@sector_shift}"
+      puts "Sector size           #{sector_size()}"
+      puts "Mini sector shift     #{@mini_sector_shift}"
+      puts "Mini sector size      #{minifat_sector_size()}"
+      puts "Mini stream cutoff    #{@mini_stream_cutoff}"
+      puts "Reserved              #{@reserved}"
+      puts "Trans sig number      #{@trans_sig_number}"
+      puts "First dir sector      #{@first_dir_sector}"
+      puts "First difat sector    #{@first_difat_pos}"
+      puts "First minifat sector  #{@first_minifat_sector}"
+      puts "Nr dir sectors        #{@nr_dir_sectors}"
+      puts "Nr fat sectors        #{@nr_fat_sectors}"
+      puts "Nr minifat sectors    #{@nr_mini_fat_sectors}"
+      puts "Nr dfat sectors       #{@nr_dfat_sectors}"
     end
 
     private def _magic()
@@ -223,10 +228,6 @@ module Ole
     private def _nr_dfat_sectors
       get_data(72,76,4)
     end
-
-    # not used def dfat()
-    # not used   get_data(76,76+436,436)
-    # not used end
 
     def size() : Int32
       x = 8 + 16 + 5 * 2 + 6 + 9 * 4 + 109 * 4

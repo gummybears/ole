@@ -169,6 +169,12 @@ module Ole
       end
     end
 
+    def get_sector_offset(index : UInt32) : Int32
+      x   = sector_size()
+      pos = x * ( index + 1 )
+      return pos
+    end
+
     def read_sector(index : UInt32) : Bytes
       #
       # basic checks
@@ -186,6 +192,7 @@ module Ole
 
       spos = x * ( index + 1 )
       epos = spos + x
+
       if spos < 0
         set_error("array index cannot be negative")
         return Bytes[]
@@ -199,6 +206,72 @@ module Ole
       @data[spos..epos - 1]
     end
 
+    def get_sector_type(index : UInt32) : String
+      s   = ""
+
+      if index == -1
+        return Ole::S_HEADER
+      end
+
+      if index == @header.first_dir_sector
+        return Ole::S_DIRECTORY
+      end
+
+      if index == @header.first_minifat_sector
+        return Ole::S_MINIFATSECTOR
+      end
+
+      pos = get_sector_offset(index)
+      if @status == 0
+
+
+        raw_data    = data[pos..pos+3]
+        sector_type = ::Ole.endian_u32(raw_data,@header.byte_order)
+
+        case sector_type
+          when 0xFFFFFFFD
+            s = Ole::S_FATSECTOR
+
+        end
+      end
+
+      return s
+    end
+
+    #
+    # Get stream by name
+    #
+    def get_stream(name : String) : {Bool, DirectoryEntry, Bytes}
+
+      #
+      # convert name to UTF-16 Big Endian
+      #
+      x   = name.encode("UTF-16BE")
+      len = x.size
+
+      @directories.each do |e|
+        if e.name == ""
+          next
+        end
+
+        #
+        # need to trim the directory name to (len - 1)
+        # to do comparison
+        #
+        name_utf16 = e.name.to_utf16[0..len-1]
+
+        if name_utf16 == x
+          # old code data = read_sector(e.start_sector)
+          data = read_stream(e)
+          if data.size > 0
+            return true, e, data
+          end
+        end
+      end
+
+      return false, DirectoryEntry.new, Bytes.new(0)
+    end
+
     def read_stream(d : DirectoryEntry) : Bytes
 
       #
@@ -209,7 +282,7 @@ module Ole
         return Bytes[]
       end
 
-      x    = sector_size()
+      x    = minifat_sector_size()
       spos = x * ( d.start_sector + 1 )
       epos = spos + d.size
 

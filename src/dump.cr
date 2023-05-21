@@ -5,53 +5,92 @@
 # copyright 2007-2023, ICUBIC
 #
 
+require "./constants.cr"
+
 module Ole
 
   module Dump
 
+    def print_dump_file()
+      puts
+      puts "Dump of file '#{@filename}'".colorize(:green)
+      puts
+    end
+
+    def print_hex_dump()
+      puts
+      puts "Hex dump".colorize(:green)
+      puts
+    end
+
+    def print_header()
+      #puts
+      puts "Header".colorize(:green)
+      puts
+    end
+
+    def print_ministreams()
+      puts
+      puts "Mini streams".colorize(:green)
+      puts
+    end
+
+    def print_directories()
+      puts
+      puts "Directories".colorize(:green)
+      puts
+    end
+
     def print_fat_header()
       puts
-      puts "FAT (max nr sectors #{max_nr_sectors})"
+      puts "FAT (max nr sectors #{max_nr_sectors})".colorize(:green)
       puts
     end
 
     def print_minifat_header()
       puts
-      puts "Mini FAT"
+      puts "Mini FAT".colorize(:green)
       puts
     end
 
     def print_difat_header()
       puts
-      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)"
+      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)".colorize(:green)
       puts
+    end
+
+    def print_offset(i : Int32) : String
+      s = "0x"
+      s = s + sprintf("%0.4x ",i).upcase
+      s = s + sprintf("(%0.4d) : ",i)
+      return s
     end
 
     #
     # Dump FAT (for debugging only)
     #
-    def dump_fat
+    def dump_fat()
 
       print_fat_header()
 
       i = 0
       @fat.each do |e|
 
-        s = sprintf("%0.8x",e).upcase
-        x = sprintf("%0.4x",i).upcase
+        s = print_offset(i)
+        x = sprintf("%0.8x",e).upcase
 
         case e
           when Ole::FATSECT
-            puts "0x#{x} : fat sector"
+            puts "#{s}#{Ole::S_FATSECTOR}"
 
           when Ole::ENDOFCHAIN
-            puts "0x#{x} : end of chain"
+            puts "#{s}#{Ole::S_ENDOFCHAIN}"
 
           when Ole::FREESECT
-            puts "0x#{x} : free sector"
+            puts "#{s}#{Ole::S_FREESECTOR}"
 
           else
-            puts "0x#{x} : 0x#{s}"
+            puts "#{s}0x#{x}"
 
         end
 
@@ -62,7 +101,7 @@ module Ole
     #
     # Dump DiFAT (for debugging only)
     #
-    def dump_difat
+    def dump_difat()
 
       if @header.nr_dfat_sectors == 0
         puts "No DIFAT sectors found"
@@ -74,22 +113,21 @@ module Ole
       i = 0
       @header.difat.each do |e|
 
-        s = sprintf("%0.8x",e).upcase
-        x = sprintf("%0.4x",i).upcase
+        s = print_offset(i)
+        x = sprintf("%0.8x",e).upcase
 
         case e
           when Ole::FATSECT
-            puts "0x#{x} : fat sector"
+            puts "#{s}#{Ole::S_FATSECTOR}"
 
           when Ole::ENDOFCHAIN
-            puts "0x#{x} : end of chain"
+            puts "#{s}#{Ole::S_ENDOFCHAIN}"
 
           when Ole::FREESECT
-            puts "0x#{x} : free sector"
+            puts "#{s}#{Ole::S_FREESECTOR}"
 
           else
-            puts "0x#{x} : 0x#{s}"
-
+            puts "#{s}0x#{x}"
         end
 
         i = i + 1
@@ -101,19 +139,27 @@ module Ole
     # dump some header information
     # debug purposes
     #
-    def dump()
-      puts
-      puts "dump of file '#{@filename}'"
-      puts
-      @header.dump()
+    def dump_file()
+
+      print_dump_file()
+
+      dump_header()
+      dump_directories()
       dump_difat()
       dump_fat()
+      dump_minifat()
+
+      dump_ministreams()
+      dump_hex()
     end
 
     #
     # Dump directories (for debugging only)
     #
     def dump_directories()
+
+      print_directories()
+
       @directories.each do |e|
         puts e.dump
         puts
@@ -130,22 +176,21 @@ module Ole
       i = 0
       @minifat.each do |e|
 
-        s = sprintf("%0.8x",e).upcase
-        x = sprintf("%0.4x",i).upcase
+        s = print_offset(i)
+        x = sprintf("%0.8x",e).upcase
 
         case e
           when Ole::FATSECT
-            puts "0x#{x} : minifat sector"
+            puts "#{s}#{Ole::S_FATSECTOR}"
 
           when Ole::ENDOFCHAIN
-            puts "0x#{x} : end of chain"
+            puts "#{s}#{Ole::S_ENDOFCHAIN}"
 
           when Ole::FREESECT
-            puts "0x#{x} : free sector"
+            puts "#{s}#{Ole::S_FREESECTOR}"
 
           else
-            puts "0x#{x} : 0x#{s}"
-
+            puts "#{s}0x#{x}"
         end
 
         i = i + 1
@@ -156,6 +201,9 @@ module Ole
     # Dump ministreams
     #
     def dump_ministreams
+
+      print_ministreams()
+
       i = 0
       @directories.each do |e|
         if e.name != ""
@@ -174,56 +222,31 @@ module Ole
     end
 
     #
-    # Get stream by name
-    #
-    def get_stream(name : String) : {Bool, DirectoryEntry, Bytes}
-
-      #
-      # convert name to UTF-16 Big Endian
-      #
-      x   = name.encode("UTF-16BE")
-      len = x.size
-
-      @directories.each do |e|
-        if e.name == ""
-          next
-        end
-
-        #
-        # need to trim the directory name to (len - 1)
-        # to do comparison
-        #
-        name_utf16 = e.name.to_utf16[0..len-1]
-
-        if name_utf16 == x
-          # old code data = read_sector(e.start_sector)
-          data = read_stream(e)
-          if data.size > 0
-            return true, e, data
-          end
-        end
-      end
-
-      return false, DirectoryEntry.new, Bytes.new(0)
-    end
-
-
-    #
     # Dump sector (for debugging only)
     #
     def dump_sector(sector : UInt32)
       read_sector(sector)
     end
 
-    def dump_file()
+    #
+    # Dump header
+    #
+    def dump_header()
 
-      puts
+      print_header()
+      @header.dump()
+    end
 
-      len = data.size - 1
+    def dump_hex()
+
+      print_hex_dump()
+
+      len           = data.size - 1
+      sector_number = 0
+
       (0..len).step(16) do |i|
 
-        s = "0x" + sprintf("%0.4x ",i).upcase
-        s = s + sprintf("(%0.4d) : ",i)
+        s = print_offset(i)
         print s
 
         (0..15).each do |k|
@@ -273,9 +296,40 @@ module Ole
         end # k loop
 
         print "| "
+
+        #
+        # Print sector number
+        #
+        sector_size = sector_size()
+        if (i % sector_size) == 0
+
+          if i == 0
+            print S_HEADER.colorize.fore(:green).mode(:bold)
+          end
+
+          #
+          # sectors start after the header
+          #
+          if i > 0
+            print "<< sector #{sector_number - 1} >> ".colorize.fore(:yellow).mode(:bold)
+          end
+
+          if sector_number > 0
+            sector_type = get_sector_type(sector_number.to_u32 - 1)
+            if sector_type != ""
+              print sector_type.colorize.fore(:green).mode(:bold)
+            end
+          end
+
+          # old code, see get_sector_type, dir_sector = get_sector_offset(@header.first_dir_sector)
+          # old code, see get_sector_type, if i == dir_sector
+          # old code, see get_sector_type,   print S_DIRECTORY.colorize.fore(:green).mode(:bold)
+          # old code, see get_sector_type, end
+
+          sector_number = sector_number + 1
+        end
         puts
       end
     end
-
   end
 end

@@ -217,17 +217,17 @@ describe "Ole:Header" do
     end
   end
 
-  describe "first_mini_fat_pos" do
+  describe "first_minifat_sector" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       header = ole.get_header()
-      header.first_mini_fat_pos.should eq 2
+      header.first_minifat_sector.should eq 2
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       header = ole.get_header()
-      header.first_mini_fat_pos.should eq 2
+      header.first_minifat_sector.should eq 2
     end
   end
 
