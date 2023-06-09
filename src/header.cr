@@ -43,13 +43,13 @@ module Ole
     property errors               : Array(String) = [] of String
     property status               : Int32 = 0
     property error                : String = ""
-    property data                 : Bytes
+    property data                 : Bytes  = Bytes.new(0)
 
     property magic                : String = ""
     property clsid                : String = ""
     property minor_version        : UInt16 = 0
     property major_version        : UInt16 = 0
-    property byte_order           : Ole::ByteOrder
+    property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
     property sector_shift         : UInt16 = 0
     property mini_sector_shift    : UInt16 = 0
     property reserved             : String = ""
@@ -64,6 +64,9 @@ module Ole
     property nr_dfat_sectors      : UInt32 = 0
     property difat                : Array(UInt32)  = [] of UInt32
 
+    def initialize
+    end
+
     def initialize(data : Bytes)
       @data       = data
       @byte_order = determine_byteorder()
@@ -73,22 +76,18 @@ module Ole
       #
       spos     = 76
       nr_bytes = 4
-
       (0..109-1).each do |i|
         epos  = spos + nr_bytes - 1
         @difat << ::Ole.endian_u32(data[spos..epos],@byte_order)
         spos = epos + 1
       end
 
-      # old code @magic                = ::Ole.to_raw(_magic(),@byte_order)
-      # old code @clsid                = ::Ole.to_raw(_clsid(),@byte_order)
       @magic                = ::Ole.to_hex(_magic(),@byte_order,"")
       @clsid                = ::Ole.to_hex(_clsid(),@byte_order,"")
       @minor_version        = ::Ole.endian_u16(_minor_version(),@byte_order)
       @major_version        = ::Ole.endian_u16(_major_version(),@byte_order)
       @sector_shift         = ::Ole.endian_u16(_sector_shift(),@byte_order)
       @mini_sector_shift    = ::Ole.endian_u16(_mini_sector_shift(),@byte_order)
-      # old code @reserved             = ::Ole.to_raw(_reserved(),@byte_order)
       @reserved             = ::Ole.to_hex(_reserved(),@byte_order,"")
       @nr_dir_sectors       = ::Ole.endian_u32(_nr_dir_sectors(),@byte_order)
       @nr_fat_sectors       = ::Ole.endian_u32(_nr_fat_sectors(),@byte_order)
@@ -128,37 +127,71 @@ module Ole
     end
 
     def dump()
-      # old code puts "magic                #{@magic}"
-      puts "Magic                 #{::Ole.to_hex(_magic)}"
-      puts "Clsid                 #{@clsid}"
-      puts "Minor version         0x#{@minor_version.to_s(16)}"
-      puts "Major version         0x#{@major_version.to_s(16)}"
+      puts "Misc".colorize(:green).mode(:bold)
+      puts
+      puts "Magic                #{::Ole.to_hex(_magic)}"
+      puts "Clsid                #{@clsid}"
+      puts "Minor version        0x#{@minor_version.to_s(16)}"
+      puts "Major version        0x#{@major_version.to_s(16)}"
 
       case @byte_order
         when Ole::ByteOrder::LittleEndian
-          puts "Byte order            Little Endian"
+          puts "Byte order           Little Endian"
 
         when Ole::ByteOrder::BigEndian
-          puts "Byte order            Big Endian"
+          puts "Byte order           Big Endian"
 
         else
-          puts "Byte order            None"
+          puts "Byte order           None"
       end
+      puts "Reserved             #{@reserved}"
+      puts "Trans sig number     #{@trans_sig_number}"
 
-      puts "Sector shift          #{@sector_shift}"
-      puts "Sector size           #{sector_size()}"
-      puts "Mini sector shift     #{@mini_sector_shift}"
-      puts "Mini sector size      #{minifat_sector_size()}"
-      puts "Mini stream cutoff    #{@mini_stream_cutoff}"
-      puts "Reserved              #{@reserved}"
-      puts "Trans sig number      #{@trans_sig_number}"
-      puts "First dir sector      #{@first_dir_sector}"
-      puts "First difat sector    #{@first_difat_pos}"
-      puts "First minifat sector  #{@first_minifat_sector}"
-      puts "Nr dir sectors        #{@nr_dir_sectors}"
-      puts "Nr fat sectors        #{@nr_fat_sectors}"
-      puts "Nr minifat sectors    #{@nr_mini_fat_sectors}"
-      puts "Nr dfat sectors       #{@nr_dfat_sectors}"
+      # old code puts "Sector shift          #{@sector_shift}"
+      # old code puts "Sector size           #{sector_size()}"
+      # old code puts "Mini sector shift     #{@mini_sector_shift}"
+      # old code puts "Mini sector size      #{minifat_sector_size()}"
+      # old code puts "Mini stream cutoff    #{@mini_stream_cutoff}"
+      # old code puts "Reserved              #{@reserved}"
+      # old code puts "Trans sig number      #{@trans_sig_number}"
+      # old code puts "First dir sector      #{@first_dir_sector}"
+      # old code puts "First difat sector    #{@first_difat_pos}"
+      # old code puts "First minifat sector  #{@first_minifat_sector}"
+      # old code puts "Nr dir sectors        #{@nr_dir_sectors}"
+      # old code puts "Nr fat sectors        #{@nr_fat_sectors}"
+      # old code puts "Nr minifat sectors    #{@nr_mini_fat_sectors}"
+      # old code puts "Nr dfat sectors       #{@nr_dfat_sectors}"
+
+      puts
+      puts "FAT".colorize(:green).mode(:bold)
+      puts
+      puts "# sectors            #{@nr_fat_sectors}"
+      puts "Sector shift         #{@sector_shift}"
+      puts "Sector size          #{sector_size()}"
+
+      puts
+      puts "Mini FAT".colorize(:green).mode(:bold)
+      puts
+      puts "# sectors            #{@nr_mini_fat_sectors}"
+      puts "First block          #{@first_minifat_sector}"
+      puts "Sector shift         #{@mini_sector_shift}"
+      puts "Sector size          #{minifat_sector_size()}"
+      puts "Stream cutoff        #{@mini_stream_cutoff}"
+
+      puts
+      puts "Directory".colorize(:green).mode(:bold)
+      puts
+      puts "# sectors            #{@nr_dir_sectors}"
+      puts "First block          #{@first_dir_sector}"
+
+      puts
+      puts "DIFAT".colorize(:green).mode(:bold)
+      puts
+
+      puts "# sectors            #{@nr_dfat_sectors}"
+      puts "First block          #{@first_difat_pos}"
+      puts
+
     end
 
     private def _magic()
@@ -381,6 +414,34 @@ module Ole
       end
 
       return x
+    end
+
+    def to_bytes() : Bytes
+      #data = Bytes.new(512)
+      io = IO::Memory.new
+      # io.write_bytes(@magic, IO::ByteFormat::LittleEndian)
+      # io.write_bytes(@clsid                , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@minor_version        , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@major_version        , IO::ByteFormat::LittleEndian)
+      #io.write_bytes(@byte_order           , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@sector_shift         , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@mini_sector_shift    , IO::ByteFormat::LittleEndian)
+      # io.write_bytes(@reserved             , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@nr_dir_sectors       , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@nr_fat_sectors       , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@first_dir_sector     , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@trans_sig_number     , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@mini_stream_cutoff   , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@first_minifat_sector , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@nr_mini_fat_sectors  , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@first_difat_pos      , IO::ByteFormat::LittleEndian)
+      io.write_bytes(@nr_dfat_sectors      , IO::ByteFormat::LittleEndian)
+      @difat.each do |x|
+        io.write_bytes(x, IO::ByteFormat::LittleEndian)
+      end
+
+      io.to_slice # => Bytes[0x34, 0x12]
+
     end
 
   end

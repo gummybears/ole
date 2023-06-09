@@ -30,13 +30,7 @@ module Ole
     def reverse() : Bytes
       x = @bytes.clone
       x.reverse!
-
-      #to_datetime()
     end
-
-    #def to_u64(bytes : Bytes) : UInt64
-    #  IO::ByteFormat::BigEndian.decode(UInt64, bytes)
-    #end
 
     def to_u64() : UInt64
       x = reverse()

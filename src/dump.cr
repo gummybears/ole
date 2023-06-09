@@ -19,43 +19,43 @@ module Ole
 
     def print_hex_dump()
       puts
-      puts "Hex dump".colorize(:green)
+      puts "Hex dump".colorize(:green).mode(:bold)
       puts
     end
 
     def print_header()
       #puts
-      puts "Header".colorize(:green)
+      puts "Header".colorize(:green).mode(:bold)
       puts
     end
 
     def print_ministreams()
       puts
-      puts "Mini streams".colorize(:green)
+      puts "Mini streams".colorize(:green).mode(:bold)
       puts
     end
 
     def print_directories()
       puts
-      puts "Directories".colorize(:green)
+      puts "Directories".colorize(:green).mode(:bold)
       puts
     end
 
     def print_fat_header()
       puts
-      puts "FAT (max nr sectors #{max_nr_sectors})".colorize(:green)
+      puts "FAT (max nr sectors #{max_nr_sectors})".colorize(:green).mode(:bold)
       puts
     end
 
     def print_minifat_header()
       puts
-      puts "Mini FAT".colorize(:green)
+      puts "Mini FAT".colorize(:green).mode(:bold)
       puts
     end
 
     def print_difat_header()
       puts
-      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)".colorize(:green)
+      puts "DIFAT (#{@header.nr_dfat_sectors} sectors)".colorize(:green).mode(:bold)
       puts
     end
 
@@ -153,16 +153,37 @@ module Ole
       dump_hex()
     end
 
+    def print_directories_header()
+
+      #print sprintf("%s ","Dir ID")
+      #print sprintf("%-30s","Name")
+      #print sprintf("%-20s","Type")
+      #print sprintf("%-20s","Dir ID (left)")
+      #print sprintf("%-20s","Dir ID (right)")
+      #print "Dir ID First member"
+      #print " "
+      #print "Sector ID first block"
+      #print " "
+      #print "Stream Size"
+      #print " "
+      #print "FAT"
+      #puts
+
+      s = sprintf("%6s %-30s %s %s %s %s %s %s","Dir ID","Name","Type","left ID", "right ID", "ID first block", "Size", "FAT")
+      puts s
+    end
+
     #
     # Dump directories (for debugging only)
     #
     def dump_directories()
 
       print_directories()
-
-      @directories.each do |e|
-        puts e.dump
-        puts
+      print_directories_header()
+      puts
+      @directories.each_with_index do |e,i|
+        s = e.dump(i)
+        puts s
       end
     end
 
@@ -320,11 +341,6 @@ module Ole
               print sector_type.colorize.fore(:green).mode(:bold)
             end
           end
-
-          # old code, see get_sector_type, dir_sector = get_sector_offset(@header.first_dir_sector)
-          # old code, see get_sector_type, if i == dir_sector
-          # old code, see get_sector_type,   print S_DIRECTORY.colorize.fore(:green).mode(:bold)
-          # old code, see get_sector_type, end
 
           sector_number = sector_number + 1
         end

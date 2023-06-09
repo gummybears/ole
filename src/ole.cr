@@ -35,7 +35,7 @@ module Ole
     property root                 : DirectoryEntry = DirectoryEntry.new
     property fat                  : Array(UInt32) = [] of UInt32
     property minifat              : Array(UInt32) = [] of UInt32
-    property ministream           : Bytes
+    property ministreams          : Array(Bytes)  = [] of Bytes
     property directories          : Array(DirectoryEntry) = [] of DirectoryEntry
     property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
     property fat_sectors          : Array(UInt32) = [] of UInt32
@@ -57,20 +57,24 @@ module Ole
       @size       = file.size
       @io         = file
       @data       = Bytes.new(@size)
-      @ministream = Bytes.new(0)
       @io.read_fully(@data)
 
       @header = Header.new(@data)
       @header.errors.each do |err|
         @errors << err
       end
-      @status = @header.status
 
-      @byte_order = @header.determine_byteorder
+      @status = @header.status
+      if @status < 0
+        puts @errors
+        return
+      end
 
       if is_valid? == false
         return
       end
+
+      @byte_order = @header.determine_byteorder
 
       read_fat()
       read_directories(@header.first_dir_sector)

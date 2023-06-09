@@ -224,7 +224,6 @@ module Ole
       pos = get_sector_offset(index)
       if @status == 0
 
-
         raw_data    = data[pos..pos+3]
         sector_type = ::Ole.endian_u32(raw_data,@header.byte_order)
 
@@ -261,7 +260,6 @@ module Ole
         name_utf16 = e.name.to_utf16[0..len-1]
 
         if name_utf16 == x
-          # old code data = read_sector(e.start_sector)
           data = read_stream(e)
           if data.size > 0
             return true, e, data

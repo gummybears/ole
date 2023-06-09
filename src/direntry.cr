@@ -6,6 +6,7 @@
 #
 require "./helper.cr"
 require "./constants.cr"
+require "./string.cr"
 
 module Ole
 
@@ -51,6 +52,7 @@ module Ole
     end
 
     def initialize(data : Bytes,byte_order : Ole::ByteOrder)
+
       @data       = data
       #
       # minus 2 as to NOT include the 2 bytes
@@ -82,7 +84,29 @@ module Ole
       @mtime        = ::Ole.le_datetime(_mtime())
       @start_sector = ::Ole.endian_u32(_start_sector(),byte_order)
       @size         = ::Ole.endian_u64(_size(),byte_order)
+    end
 
+    def is_stream?() : Bool
+      x = false
+      case @type
+        when 2
+          x = true
+      end
+
+      return x
+    end
+
+    def is_ministream?() : Bool
+      x = is_stream?()
+
+      #
+      # is this a stream and the size < 4 K
+      #
+      if x && @size <= 4 * 1024
+        return true
+      end
+
+      return x
     end
 
     #
@@ -159,15 +183,78 @@ module Ole
       get_data(120,128,8)
     end
 
-    def dump(join : String = "\n") : String
-      s = [] of String
+    # old code def dump(join : String = "\n") : String
+    # old code   s = [] of String
+    # old code
+    # old code   start_time = Time.utc(1601,1,1,0,0,0)
+    # old code
+    # old code   if @name.size > 0
+    # old code     s << "Name          #{@name}"
+    # old code   else
+    # old code     s << "Name          Empty"
+    # old code   end
+    # old code
+    # old code   t = ""
+    # old code   case @type
+    # old code     when 0
+    # old code       t = "Unknown"
+    # old code     when 1
+    # old code       t = "Storage"
+    # old code     when 2
+    # old code       t = "Stream"
+    # old code
+    # old code       if size < 4 * 1024
+    # old code         t = "Mini stream"
+    # old code       end
+    # old code     when 3
+    # old code       t = "LockBytes"
+    # old code     when 4
+    # old code       t = "Property"
+    # old code     when 5
+    # old code       t = "Root"
+    # old code     else
+    # old code       t = "Invalid"
+    # old code   end
+    # old code
+    # old code   s << "Type          #{t}"
+    # old code
+    # old code   c = ""
+    # old code   case @color
+    # old code     when 0
+    # old code       c = "Red"
+    # old code     when 1
+    # old code       c = "Black"
+    # old code     else
+    # old code       c = "Invalid"
+    # old code   end
+    # old code
+    # old code   s << "Color         #{c}"
+    # old code   s << "Left          0x#{@left_sid.to_s(16).upcase}"
+    # old code   s << "Right         0x#{@right_sid.to_s(16).upcase}"
+    # old code   s << "Child         0x#{@child_sid.to_s(16).upcase}"
+    # old code
+    # old code   x = bytes_to_hex(@clsid)
+    # old code   s << "Class id      #{x}"
+    # old code
+    # old code   s << "User flags    0x#{@user_flags.to_s(16)}"
+    # old code   s << "Creation time #{@ctime - start_time}"
+    # old code   s << "Modified time #{@mtime - start_time}"
+    # old code   s << "Sector        0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
+    # old code   s << "Size          #{@size}"
+    # old code
+    # old code   return s.join(join)
+    # old code end
 
+    def dump(index : Int32, join : String = " ") : String
+
+      #s = [] of String
       start_time = Time.utc(1601,1,1,0,0,0)
 
+      name = ""
       if @name.size > 0
-        s << "Name          #{@name}"
+        name = String.to_utf8(@name.chars)
       else
-        s << "Name          Empty"
+        name = "Empty"
       end
 
       t = ""
@@ -188,32 +275,39 @@ module Ole
           t = "Invalid"
       end
 
-      s << "Type          #{t}"
+      # c = ""
+      # case @color
+      #   when 0
+      #     c = "Red"
+      #   when 1
+      #     c = "Black"
+      #   else
+      #     c = "Invalid"
+      # end
 
-      c = ""
-      case @color
-        when 0
-          c = "Red"
-        when 1
-          c = "Black"
-        else
-          c = "Invalid"
+      # s << "Color         #{c}"
+
+      left  = @left_sid
+      right = @right_sid
+      child = @child_sid
+
+      #s << "Creation time #{@ctime - start_time}"
+      #s << "Modified time #{@mtime - start_time}"
+      # s << "0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
+      # s << @size.to_s(10)
+
+      #return s.join(join)
+
+      fat_type = ""
+      if t == "Stream"
+        fat_type = "FAT"
+        if @size <= 4 * 1024
+          fat_type = "Mini FAT"
+        end
       end
 
-      s << "Color         #{c}"
-      s << "Left          0x#{@left_sid.to_s(16).upcase}"
-      s << "Right         0x#{@right_sid.to_s(16).upcase}"
-      s << "Child         0x#{@child_sid.to_s(16).upcase}"
-
-      x = bytes_to_hex(@clsid)
-      s << "Class id      #{x}"
-
-      s << "User flags    0x#{@user_flags.to_s(16)}"
-      s << "Creation time #{@ctime - start_time}"
-      s << "Modified time #{@mtime - start_time}"
-      s << "Sector        0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
-      s << "Size          #{@size}"
-      return s.join(join)
+      s = sprintf("%6d %-30s %-30s %8d %8d %8d %8d %s",index,name,t,left,right,child,@size,fat_type)
+      return s
     end
 
     def bytes_to_hex(b : Bytes) : String
@@ -223,6 +317,5 @@ module Ole
       end
       x
     end
-
   end
 end

@@ -121,7 +121,48 @@ describe "Ole::DirectoryEntry" do
       found, dientry, data = ole.get_stream("Workbook")
       found.should eq true
     end
-
   end
+
+  describe "is_stream?" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.status.should eq 0
+
+      found, direntry, data = ole.get_stream("WordDocument")
+      found.should eq true
+      direntry.is_stream?.should eq true
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+
+      found, direntry, data = ole.get_stream("Workbook")
+      found.should eq true
+
+      direntry.is_stream?.should eq true
+    end
+  end
+
+  describe "is_ministream?" do
+    it "doc" do
+      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+      ole.status.should eq 0
+
+      found, direntry, data = ole.get_stream("WordDocument")
+      found.should eq true
+      direntry.is_ministream?().should eq true
+    end
+
+    it "excel" do
+      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+      ole.status.should eq 0
+
+      found, direntry, data = ole.get_stream("Workbook")
+      found.should eq true
+      direntry.is_ministream?().should eq true
+    end
+  end
+
 end
 
