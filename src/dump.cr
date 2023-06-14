@@ -104,7 +104,8 @@ module Ole
     def dump_difat()
 
       if @header.nr_dfat_sectors == 0
-        puts "No DIFAT sectors found"
+        puts
+        puts "No DIFAT sectors found".colorize(:red).mode(:bold)
         return
       end
 
@@ -155,22 +156,11 @@ module Ole
 
     def print_directories_header()
 
-      #print sprintf("%s ","Dir ID")
-      #print sprintf("%-30s","Name")
-      #print sprintf("%-20s","Type")
-      #print sprintf("%-20s","Dir ID (left)")
-      #print sprintf("%-20s","Dir ID (right)")
-      #print "Dir ID First member"
-      #print " "
-      #print "Sector ID first block"
-      #print " "
-      #print "Stream Size"
-      #print " "
-      #print "FAT"
-      #puts
-
-      s = sprintf("%6s %-30s %s %s %s %s %s %s","Dir ID","Name","Type","left ID", "right ID", "ID first block", "Size", "FAT")
+      s = sprintf("%6s %-30s %-12s %8s %8s %12s %12s %8s %8s","Dir ID","Name","Type","Left", "Right", "First Member", "First block", "Size", "FAT")
       puts s
+      s = sprintf("%6s %-30s %-12s %8s %8s %12s %12s %8s %8s","","","","Dir ID", "Dir ID", "Dir ID", "Sector ID", "", "")
+      puts s
+      puts "="*112
     end
 
     #

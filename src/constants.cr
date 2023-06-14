@@ -16,8 +16,8 @@ module Ole
   MAXREGSECT      = 0xFFFFFFFA # (-6) maximum sector
   DIFSECT         = 0xFFFFFFFC # (-4) denotes a DIFAT sector in a FAT
   FATSECT         = 0xFFFFFFFD # (-3) denotes a FAT sector in a FAT
-  ENDOFCHAIN      = 0xFFFFFFFE # (-2) end of a virtual stream chain
-  FREESECT        = 0xFFFFFFFF # (-1) unallocated sector
+  ENDOFCHAIN      = 0xFFFFFFFE # (-2) end of a chain
+  FREESECT        = 0xFFFFFFFF # (-1) free sector
 
   S_HEADER        = "Header"
   S_FREESECTOR    = "Free sector"
@@ -25,6 +25,18 @@ module Ole
   S_FATSECTOR     = "Fat sector"
   S_MINIFATSECTOR = "Mini Fat sector"
   S_DIRECTORY     = "Directory sector"
+
+  S_ROOT          = "Root"
+  S_STREAM        = "Stream"
+  S_FAT           = "FAT"
+  S_MINIFAT       = "Mini FAT"
+  S_STORAGE       = "Storage"
+  S_LOCKBYTES     = "LockBytes"
+  S_EMPTY         = "Empty"
+  S_NONE          = "None"
+  S_PROPERTY      = "Property"
+  S_UNKNOWN       = "Unknown"
+  S_INVALID       = "Invalid"
 
   #
   # Added constants for Directory Entry ID's
@@ -55,11 +67,14 @@ module Ole
     Black
   end
 
-  #
-  # Minimal size of an empty OLE file, with 512-bytes sectors = 1536 bytes
-  #
-  MINIMAL_OLEFILE_SIZE = 1536
+  # old code not used #
+  # old code not used # Minimal size of an empty OLE file, with 512-bytes sectors = 1536 bytes
+  # old code not used #
+  # old code not used MINIMAL_OLEFILE_SIZE = 1536
 
   TEN_MILLION = 10_000_000
   YEAR_1601   = 1601
+  FOUR_K      = 4 * 1024
+  ONE_K       = 1024
+  EIGHT_K     = 128
 end

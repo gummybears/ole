@@ -147,21 +147,6 @@ module Ole
       puts "Reserved             #{@reserved}"
       puts "Trans sig number     #{@trans_sig_number}"
 
-      # old code puts "Sector shift          #{@sector_shift}"
-      # old code puts "Sector size           #{sector_size()}"
-      # old code puts "Mini sector shift     #{@mini_sector_shift}"
-      # old code puts "Mini sector size      #{minifat_sector_size()}"
-      # old code puts "Mini stream cutoff    #{@mini_stream_cutoff}"
-      # old code puts "Reserved              #{@reserved}"
-      # old code puts "Trans sig number      #{@trans_sig_number}"
-      # old code puts "First dir sector      #{@first_dir_sector}"
-      # old code puts "First difat sector    #{@first_difat_pos}"
-      # old code puts "First minifat sector  #{@first_minifat_sector}"
-      # old code puts "Nr dir sectors        #{@nr_dir_sectors}"
-      # old code puts "Nr fat sectors        #{@nr_fat_sectors}"
-      # old code puts "Nr minifat sectors    #{@nr_mini_fat_sectors}"
-      # old code puts "Nr dfat sectors       #{@nr_dfat_sectors}"
-
       puts
       puts "FAT".colorize(:green).mode(:bold)
       puts
@@ -303,9 +288,9 @@ module Ole
       r = 0
       case version()
         when 3
-          r = 128
+          r = EIGHT_K # 128
         when 4
-          r = 1024
+          r = ONE_K # 1024
         else
           #@errors << "invalid Ole structure"
 
@@ -419,14 +404,14 @@ module Ole
     def to_bytes() : Bytes
       #data = Bytes.new(512)
       io = IO::Memory.new
-      # io.write_bytes(@magic, IO::ByteFormat::LittleEndian)
-      # io.write_bytes(@clsid                , IO::ByteFormat::LittleEndian)
+      # old code io.write_bytes(@magic, IO::ByteFormat::LittleEndian)
+      # old code io.write_bytes(@clsid                , IO::ByteFormat::LittleEndian)
       io.write_bytes(@minor_version        , IO::ByteFormat::LittleEndian)
       io.write_bytes(@major_version        , IO::ByteFormat::LittleEndian)
-      #io.write_bytes(@byte_order           , IO::ByteFormat::LittleEndian)
+      # old code io.write_bytes(@byte_order           , IO::ByteFormat::LittleEndian)
       io.write_bytes(@sector_shift         , IO::ByteFormat::LittleEndian)
       io.write_bytes(@mini_sector_shift    , IO::ByteFormat::LittleEndian)
-      # io.write_bytes(@reserved             , IO::ByteFormat::LittleEndian)
+      # old code io.write_bytes(@reserved             , IO::ByteFormat::LittleEndian)
       io.write_bytes(@nr_dir_sectors       , IO::ByteFormat::LittleEndian)
       io.write_bytes(@nr_fat_sectors       , IO::ByteFormat::LittleEndian)
       io.write_bytes(@first_dir_sector     , IO::ByteFormat::LittleEndian)

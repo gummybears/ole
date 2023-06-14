@@ -11,7 +11,6 @@ require "./string.cr"
 module Ole
 
   class DirectoryEntry
-
     #
     # name            : string, containing entry name in unicode UTF-16 (max 31 chars) + null char = 64 bytes
     # size of name    : uint16, number of bytes used in name buffer, including null = (len+1)*2
@@ -28,7 +27,6 @@ module Ole
     #                           of stream containing ministreams if root entry, 0 otherwise
     # size            : uint64, total stream size in bytes
     #
-
     property name         : String = ""           #  64     0,  64, 64
     property size_name    : UInt16 = 0            #   2    64,  66,  2
     property type         : UInt8  = 0            #   1    66,  67,  1
@@ -102,7 +100,7 @@ module Ole
       #
       # is this a stream and the size < 4 K
       #
-      if x && @size <= 4 * 1024
+      if x && @size <= FOUR_K
         return true
       end
 
@@ -183,130 +181,71 @@ module Ole
       get_data(120,128,8)
     end
 
-    # old code def dump(join : String = "\n") : String
-    # old code   s = [] of String
-    # old code
-    # old code   start_time = Time.utc(1601,1,1,0,0,0)
-    # old code
-    # old code   if @name.size > 0
-    # old code     s << "Name          #{@name}"
-    # old code   else
-    # old code     s << "Name          Empty"
-    # old code   end
-    # old code
-    # old code   t = ""
-    # old code   case @type
-    # old code     when 0
-    # old code       t = "Unknown"
-    # old code     when 1
-    # old code       t = "Storage"
-    # old code     when 2
-    # old code       t = "Stream"
-    # old code
-    # old code       if size < 4 * 1024
-    # old code         t = "Mini stream"
-    # old code       end
-    # old code     when 3
-    # old code       t = "LockBytes"
-    # old code     when 4
-    # old code       t = "Property"
-    # old code     when 5
-    # old code       t = "Root"
-    # old code     else
-    # old code       t = "Invalid"
-    # old code   end
-    # old code
-    # old code   s << "Type          #{t}"
-    # old code
-    # old code   c = ""
-    # old code   case @color
-    # old code     when 0
-    # old code       c = "Red"
-    # old code     when 1
-    # old code       c = "Black"
-    # old code     else
-    # old code       c = "Invalid"
-    # old code   end
-    # old code
-    # old code   s << "Color         #{c}"
-    # old code   s << "Left          0x#{@left_sid.to_s(16).upcase}"
-    # old code   s << "Right         0x#{@right_sid.to_s(16).upcase}"
-    # old code   s << "Child         0x#{@child_sid.to_s(16).upcase}"
-    # old code
-    # old code   x = bytes_to_hex(@clsid)
-    # old code   s << "Class id      #{x}"
-    # old code
-    # old code   s << "User flags    0x#{@user_flags.to_s(16)}"
-    # old code   s << "Creation time #{@ctime - start_time}"
-    # old code   s << "Modified time #{@mtime - start_time}"
-    # old code   s << "Sector        0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
-    # old code   s << "Size          #{@size}"
-    # old code
-    # old code   return s.join(join)
-    # old code end
+    def id_to_s(index : UInt32) : String
+
+      s= ""
+      case index
+        when Ole::FREESECT, Ole::ENDOFCHAIN
+          s = S_NONE #"none"
+        else
+          s = index.to_s
+      end
+
+      return s
+    end
 
     def dump(index : Int32, join : String = " ") : String
 
-      #s = [] of String
-      start_time = Time.utc(1601,1,1,0,0,0)
+      # not used start_time = Time.utc(1601,1,1,0,0,0)
 
       name = ""
       if @name.size > 0
         name = String.to_utf8(@name.chars)
       else
-        name = "Empty"
+        name = S_EMPTY # "Empty"
       end
 
       t = ""
       case @type
         when 0
-          t = "Unknown"
+          t = S_UNKNOWN # "Unknown"
         when 1
-          t = "Storage"
+          t = S_STORAGE # "Storage"
         when 2
-          t = "Stream"
+          t = S_STREAM # "Stream"
         when 3
-          t = "LockBytes"
+          t = S_LOCKBYTES # "LockBytes"
         when 4
-          t = "Property"
+          t = S_PROPERTY # "Property"
         when 5
-          t = "Root"
+          t = S_ROOT # "Root"
         else
-          t = "Invalid"
+          t = S_INVALID # "Invalid"
       end
 
-      # c = ""
-      # case @color
-      #   when 0
-      #     c = "Red"
-      #   when 1
-      #     c = "Black"
-      #   else
-      #     c = "Invalid"
-      # end
-
-      # s << "Color         #{c}"
 
       left  = @left_sid
       right = @right_sid
       child = @child_sid
 
-      #s << "Creation time #{@ctime - start_time}"
-      #s << "Modified time #{@mtime - start_time}"
-      # s << "0x#{@start_sector.to_s(16).upcase} (#{@start_sector})"
-      # s << @size.to_s(10)
-
-      #return s.join(join)
-
       fat_type = ""
-      if t == "Stream"
-        fat_type = "FAT"
-        if @size <= 4 * 1024
-          fat_type = "Mini FAT"
+      if t == S_STREAM # "Stream"
+        fat_type = S_FAT # "FAT"
+        if @size <= FOUR_K # 4 * 1024
+          fat_type = S_MINIFAT #"Mini FAT"
         end
       end
 
-      s = sprintf("%6d %-30s %-30s %8d %8d %8d %8d %s",index,name,t,left,right,child,@size,fat_type)
+      if t == S_ROOT
+        fat_type = S_FAT #"FAT"
+      end
+
+      s_left = id_to_s(left)
+      s_right = id_to_s(right)
+      s_child = id_to_s(child)
+      s_first = id_to_s(@start_sector)
+
+      s = sprintf("%6d %-30s %-12s %8s %8s %12s %12s %8d %8s",index,name,t,s_left,s_right,s_child,s_first,@size,fat_type)
       return s
     end
 

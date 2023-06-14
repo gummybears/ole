@@ -16,6 +16,7 @@ require "./direntry.cr"
 require "./dump.cr"
 require "./directory.cr"
 require "./readers.cr"
+require "./sector.cr"
 
 #
 # see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/28488197-8193-49d7-84d8-dfd692418ccd
@@ -33,12 +34,15 @@ module Ole
     property io                   : IO
     property data                 : Bytes
     property root                 : DirectoryEntry = DirectoryEntry.new
-    property fat                  : Array(UInt32) = [] of UInt32
-    property minifat              : Array(UInt32) = [] of UInt32
     property ministreams          : Array(Bytes)  = [] of Bytes
     property directories          : Array(DirectoryEntry) = [] of DirectoryEntry
     property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
-    property fat_sectors          : Array(UInt32) = [] of UInt32
+
+    property fat                  : Array(UInt32) = [] of UInt32
+    property minifat              : Array(UInt32) = [] of UInt32
+    # not used property fat_sectors          : Array(UInt32) = [] of UInt32
+
+    property sectors              : Array(Sector) = [] of Sector
 
     include Dump
     include Directory
@@ -79,10 +83,10 @@ module Ole
       read_fat()
       read_directories(@header.first_dir_sector)
 
-      if @directories[0].start_sector != Ole::ENDOFCHAIN
-        # TODO read_minifat_stream(@directories[0].start_sector)
-        read_minifat_chain(@header.first_minifat_sector)
-      end
+      # TODO if @directories[0].start_sector != Ole::ENDOFCHAIN
+      # TODO   # TODO read_minifat_stream(@directories[0].start_sector)
+      # TODO   # TODO read_minifat_chain(@header.first_minifat_sector)
+      # TODO end
 
       file.close
     end
