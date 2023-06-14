@@ -27,6 +27,10 @@ module Ole
           break
         end
 
+        if sector == Ole::FREESECT
+          break
+        end
+
         data = read_sector(sector)
         if data.size == 0
           set_error("no data found in chain for sector #{sector}")

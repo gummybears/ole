@@ -98,43 +98,43 @@ module Ole
       end
     end
 
-    #
-    # Dump DiFAT (for debugging only)
-    #
-    def dump_difat()
-
-      if @header.nr_dfat_sectors == 0
-        puts
-        puts "No DIFAT sectors found".colorize(:red).mode(:bold)
-        return
-      end
-
-      print_difat_header()
-
-      i = 0
-      @header.difat.each do |e|
-
-        s = print_offset(i)
-        x = sprintf("%0.8x",e).upcase
-
-        case e
-          when Ole::FATSECT
-            puts "#{s}#{Ole::S_FATSECTOR}"
-
-          when Ole::ENDOFCHAIN
-            puts "#{s}#{Ole::S_ENDOFCHAIN}"
-
-          when Ole::FREESECT
-            puts "#{s}#{Ole::S_FREESECTOR}"
-
-          else
-            puts "#{s}0x#{x}"
-        end
-
-        i = i + 1
-      end
-
-    end
+    # old code #
+    # old code # Dump DiFAT (for debugging only)
+    # old code #
+    # old code def dump_difat()
+    # old code
+    # old code   if @header.nr_dfat_sectors == 0
+    # old code     puts
+    # old code     puts "No DIFAT sectors found".colorize(:red).mode(:bold)
+    # old code     return
+    # old code   end
+    # old code
+    # old code   print_difat_header()
+    # old code
+    # old code   i = 0
+    # old code   @header.difat.each do |e|
+    # old code
+    # old code     s = print_offset(i)
+    # old code     x = sprintf("%0.8x",e).upcase
+    # old code
+    # old code     case e
+    # old code       when Ole::FATSECT
+    # old code         puts "#{s}#{Ole::S_FATSECTOR}"
+    # old code
+    # old code       when Ole::ENDOFCHAIN
+    # old code         puts "#{s}#{Ole::S_ENDOFCHAIN}"
+    # old code
+    # old code       when Ole::FREESECT
+    # old code         puts "#{s}#{Ole::S_FREESECTOR}"
+    # old code
+    # old code       else
+    # old code         puts "#{s}0x#{x}"
+    # old code     end
+    # old code
+    # old code     i = i + 1
+    # old code   end
+    # old code
+    # old code end
 
     #
     # dump some header information
@@ -146,7 +146,7 @@ module Ole
 
       dump_header()
       dump_directories()
-      dump_difat()
+      # old code dump_difat()
       dump_fat()
       dump_minifat()
 

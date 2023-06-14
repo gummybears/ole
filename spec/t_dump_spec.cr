@@ -53,19 +53,19 @@ describe "Ole::FileIO" do
     end
   end
 
-  describe "dump_difat" do
-    it "doc" do
-      ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
-      ole.dump_difat
-      ole.status.should eq 0
-    end
-
-    it "excel" do
-      ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
-      ole.dump_difat
-      ole.status.should eq 0
-    end
-  end
+  # old code describe "dump_difat" do
+  # old code   it "doc" do
+  # old code     ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
+  # old code     ole.dump_difat
+  # old code     ole.status.should eq 0
+  # old code   end
+  # old code
+  # old code   it "excel" do
+  # old code     ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
+  # old code     ole.dump_difat
+  # old code     ole.status.should eq 0
+  # old code   end
+  # old code end
 
   describe "dump_minifat" do
     it "doc" do
