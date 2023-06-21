@@ -85,18 +85,18 @@ describe "Ole::FileIO" do
     it "doc" do
       ole = Ole::FileIO.new("./spec/docs/test_word_6.doc","rb")
       ole.status.should eq 0
-      ole.byte_order.should eq Ole::ByteOrder::LittleEndian
+      ole.header.byte_order.should eq Ole::ByteOrder::LittleEndian
     end
 
     it "excel" do
       ole = Ole::FileIO.new("./spec/excel/test.xls","rb")
       ole.status.should eq 0
-      ole.byte_order.should eq Ole::ByteOrder::LittleEndian
+      ole.header.byte_order.should eq Ole::ByteOrder::LittleEndian
     end
 
     it "test.ole" do
       ole = Ole::FileIO.new("./spec/ole/test.ole","rb")
-      ole.byte_order.should eq Ole::ByteOrder::LittleEndian
+      ole.header.byte_order.should eq Ole::ByteOrder::LittleEndian
     end
   end
 

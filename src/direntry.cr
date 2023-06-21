@@ -208,19 +208,19 @@ module Ole
       t = ""
       case @type
         when 0
-          t = S_UNKNOWN # "Unknown"
+          t = S_UNKNOWN
         when 1
-          t = S_STORAGE # "Storage"
+          t = S_STORAGE
         when 2
-          t = S_STREAM # "Stream"
+          t = S_STREAM
         when 3
-          t = S_LOCKBYTES # "LockBytes"
+          t = S_LOCKBYTES
         when 4
-          t = S_PROPERTY # "Property"
+          t = S_PROPERTY
         when 5
-          t = S_ROOT # "Root"
+          t = S_ROOT
         else
-          t = S_INVALID # "Invalid"
+          t = S_INVALID
       end
 
 
@@ -229,18 +229,18 @@ module Ole
       child = @child_sid
 
       fat_type = ""
-      if t == S_STREAM # "Stream"
-        fat_type = S_FAT # "FAT"
+      if t == S_STREAM
+        fat_type = S_FAT
         if @size <= FOUR_K # 4 * 1024
-          fat_type = S_MINIFAT #"Mini FAT"
+          fat_type = S_MINIFAT
         end
       end
 
       if t == S_ROOT
-        fat_type = S_FAT #"FAT"
+        fat_type = S_FAT
       end
 
-      s_left = id_to_s(left)
+      s_left  = id_to_s(left)
       s_right = id_to_s(right)
       s_child = id_to_s(child)
       s_first = id_to_s(@start_sector)

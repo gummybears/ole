@@ -425,7 +425,7 @@ module Ole
         io.write_bytes(x, IO::ByteFormat::LittleEndian)
       end
 
-      io.to_slice # => Bytes[0x34, 0x12]
+      io.to_slice
 
     end
 

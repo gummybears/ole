@@ -25,7 +25,7 @@ module Ole
         spos      = index * dir_size
         epos      = spos + dir_size
         x         = data[spos..epos - 1]
-        dir_entry = Ole::DirectoryEntry.new(x,@byte_order)
+        dir_entry = Ole::DirectoryEntry.new(x,@header.byte_order)
         dir_entries << dir_entry
       end
 

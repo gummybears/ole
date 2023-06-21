@@ -17,6 +17,7 @@ require "./dump.cr"
 require "./directory.cr"
 require "./readers.cr"
 require "./sector.cr"
+require "./blob.cr"
 
 #
 # see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/28488197-8193-49d7-84d8-dfd692418ccd
@@ -36,7 +37,7 @@ module Ole
     property root                 : DirectoryEntry = DirectoryEntry.new
     property ministreams          : Array(Bytes)  = [] of Bytes
     property directories          : Array(DirectoryEntry) = [] of DirectoryEntry
-    property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
+    # property byte_order           : Ole::ByteOrder = Ole::ByteOrder::None
 
     property fat                  : Array(UInt32) = [] of UInt32
     property minifat              : Array(UInt32) = [] of UInt32
@@ -78,7 +79,7 @@ module Ole
         return
       end
 
-      @byte_order = @header.determine_byteorder
+      #@byte_order = @header.determine_byteorder
 
       read_fat()
       read_directories(@header.first_dir_sector)

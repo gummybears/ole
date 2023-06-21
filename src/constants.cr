@@ -8,6 +8,7 @@ require "./helper.cr"
 
 module Ole
 
+  HEADER_SIZE     = 512
   UNKNOWN_SIZE    = 0x7FFFFFFF
 
   #
