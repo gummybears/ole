@@ -68,11 +68,6 @@ module Ole
     Black
   end
 
-  # old code not used #
-  # old code not used # Minimal size of an empty OLE file, with 512-bytes sectors = 1536 bytes
-  # old code not used #
-  # old code not used MINIMAL_OLEFILE_SIZE = 1536
-
   TEN_MILLION = 10_000_000
   YEAR_1601   = 1601
   FOUR_K      = 4 * 1024

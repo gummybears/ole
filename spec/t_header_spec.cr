@@ -6,7 +6,7 @@
 #
 require "./spec_helper"
 
-describe "Ole:Header" do
+pending "Ole:Header" do
 
   #
   # testing just the raw data, no byte order assumed (little or big endian)

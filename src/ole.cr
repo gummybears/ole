@@ -70,16 +70,14 @@ module Ole
       end
 
       @status = @header.status
-      if @status < 0
+      if @status < 0 || is_valid? == false
         puts @errors
         return
       end
 
-      if is_valid? == false
-        return
-      end
-
-      #@byte_order = @header.determine_byteorder
+      # old code if is_valid? == false
+      # old code   return
+      # old code end
 
       read_fat()
       read_directories(@header.first_dir_sector)

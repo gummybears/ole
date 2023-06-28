@@ -1,5 +1,5 @@
 #
-# t_dump_spec.cr
+# t_blob_spec.cr
 #
 # author : W.F.F. Neimeijer
 # copyright 2007-2023, ICUBIC
@@ -276,6 +276,15 @@ describe "Ole::Blob" do
       blob.pos.should eq 10
       x.should eq "Hello"
     end
+  end
 
+  describe "read_header()" do
+    it "size" do
+      mode     = "rb"
+      filename = "./spec/excel/test.xls"
+      blob = Ole::Blob.new(filename,mode)
+      header = blob.read_header()
+      header.size.should eq Ole::HEADER_SIZE
+    end
   end
 end

@@ -5,6 +5,7 @@
 # copyright 2007-2023, ICUBIC
 #
 require "./constants.cr"
+require "./header2.cr"
 
 module Ole
 
@@ -16,7 +17,6 @@ module Ole
     property status               : Int32 = 0
     property size                 : Int64 = 0
     property io                   : IO
-
     property pos                  : Int32 = 0
 
     def initialize(filename : String, mode : String)
@@ -31,7 +31,10 @@ module Ole
 
       file  = File.new(filename)
       @size = file.size
-      @io   = file
+      #bytes = Bytes.new(@size)
+      #@io   = IO::Memory.new(bytes)
+      @io  = file
+      @io.rewind
     end
 
     def initialize(bytes : Bytes)
@@ -47,7 +50,7 @@ module Ole
 
     def initialize
       bytes = Bytes.new(0)
-      @io  = IO::Memory.new(bytes)
+      @io   = IO::Memory.new(bytes)
     end
 
     def read(size : Int32) : Bytes
@@ -117,10 +120,28 @@ module Ole
       slice = Bytes.new(size)
       len   = slice.size.to_u32 + 2
       @io.read(slice)
-
       s = Ole::ConvertString.new(slice,len,byte_order).to_s()
       s = String.to_utf8(s.chars)
       return s
+    end
+
+    def read_bytes(size : Int32, byte_order : Ole::ByteOrder = Ole::ByteOrder::LittleEndian) : String
+
+      slice = Bytes.new(size)
+      len   = slice.size.to_u32
+      @io.read(slice)
+      s = ""
+      slice.each do |x|
+        s = s + x.chr
+      end
+      return s
+    end
+
+    def read_bytes(size : Int32) : Bytes
+      slice = Bytes.new(size)
+      len   = slice.size.to_u32
+      @io.read(slice)
+      return slice
     end
 
     def write_8bits(value : Int8, byte_order : Ole::ByteOrder = Ole::ByteOrder::LittleEndian)
@@ -167,9 +188,6 @@ module Ole
     end
 
     def write_string(value : String, byte_order : Ole::ByteOrder = Ole::ByteOrder::LittleEndian)
-      # test code slice = value.to_utf16()
-      # test code @io.write_string(slice)
-
 
       case byte_order
         when Ole::ByteOrder::LittleEndian
@@ -179,9 +197,21 @@ module Ole
         when Ole::ByteOrder::BigEndian
           slice = value.encode("UTF-16BE")
           @io.write(slice)
-          #@io.write_string(value, IO::ByteFormat::BigEndian)
       end
     end
+
+    #def read_header() : Header2
+    #
+    #  # old code slice = Bytes.new(Ole::HEADER_SIZE)
+    #  # old code @io.rewind
+    #  # old code @io.read(slice)
+    #  # old code
+    #  # old code header = Header2.new(slice)
+    #  # old code return header
+    #
+    #  # header = Header2.new(self)
+    #  # return header
+    #end
 
     def set_error(s : String)
       @errors << "ole error : #{s}"
